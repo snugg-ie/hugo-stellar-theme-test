@@ -839,3 +839,25 @@ video {
 .card_title:empty {
 	margin-top: 0;
 }
+
+
+.statuslol {
+	width: 16em;
+}
+
+
+.spotlight .image {
+	margin-bottom: 2em;
+}
+
+@media screen and (max-width: 980px) {
+	.statuslol {
+		margin-bottom: 2em;
+	}
+}
+
+@media screen and (min-width: 980px) {
+	.statuslol {
+		margin-left: 4em;
+	}
+}

@@ -14,7 +14,10 @@
       </ul>
     </div>
     {{ if .Site.Params.intro.image }}
+    <div style="display: flex; flex-direction: column; align-items: center;">
       <span class="image"><picture>  <source srcset="/avatar.webp" type="image/webp"><source srcset="/avatar.jpg" type="image/jpeg"><img class="u-photo" rel="preload" src="{{ .Site.Params.intro.image }}" alt="Evie Snuggle's portrait with a garden behind" /></picture></span>
+     <script src="https://status.lol/snuggle.js?time&link&fluent&pretty"></script>
+	</div>
     {{ end }}
     <div style="display: none;">
       <a class="u-url" style="display: none;" href="https://snugg.ie"></a>
