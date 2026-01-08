@@ -843,8 +843,21 @@ video {
 
 .statuslol {
 	width: 16em;
+	align-items: flex-end;
 }
 
+.statuslol_emoji_container {
+	display: flex;
+}
+
+.statuslol_content {
+	display: flex;
+	flex-direction: column;
+}
+
+.statuslol_content p {
+	margin: 0;
+}
 
 .spotlight .image {
 	margin-bottom: 2em;
