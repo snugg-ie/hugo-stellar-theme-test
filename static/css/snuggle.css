@@ -874,3 +874,7 @@ video {
 		margin-left: 4em;
 	}
 }
+
+.statuslol_emoji_container span {
+	font-size: 100%;
+}
