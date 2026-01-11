@@ -876,5 +876,5 @@ video {
 }
 
 .statuslol_emoji_container span {
-	font-size: 100%;
+	font-size: 100% !important;
 }
