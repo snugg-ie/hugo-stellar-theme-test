@@ -12,17 +12,10 @@
 	var reduceMotion = window.matchMedia &&
 		window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-	// Colours lifted from the sprinkle motif (classic + "me" palettes).
-	var COLOURS = [
-		'#4799ff', // blue
-		'#ff3b3b', // red
-		'#33a600', // green
-		'#cf4f9e', // pink
-		'#3b40bd', // indigo
-		'#008c9c', // teal
-		'#f5a623', // amber
-		'#c80064'  // magenta
-	];
+	// Sprinkle colours, weighted toward classic red / green / blue. Accent
+	// hues add variety; yellow, brown and black are left out as off-palette.
+	var PRIMARY = ['#ff3b3b', '#33a600', '#4799ff']; // red, green, blue
+	var ACCENT = ['#cf4f9e', '#3b40bd', '#008c9c', '#c80064']; // pink, indigo, teal, magenta
 
 	// Elements whose on-screen rectangles the sprinkles keep clear of.
 	var OBSTACLE_SELECTOR = [
@@ -40,6 +33,10 @@
 	var TARGET_OPACITY = 0.72;
 	var ENTER_MIN = 700, ENTER_MAX = 1300;   // "sprinkle in" duration (ms)
 	var START_SCALE_MIN = 2.0, START_SCALE_MAX = 2.8;
+	// Each sprinkle lingers for a while, then recedes and is replaced, so a
+	// gentle trickle of fresh ones keeps coming.
+	var LIFE_MIN = 14000, LIFE_MAX = 32000;
+	var EXIT_DUR = 900;                      // fade-out duration (ms)
 	// Gap between new sprinkles curves from a quick initial rush (near-empty)
 	// out to a slow trickle (near the density cap).
 	var SPAWN_FAST = 120, SPAWN_SLOW = 1100;
@@ -58,6 +55,7 @@
 
 	function rand(min, max) { return min + Math.random() * (max - min); }
 	function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+	function pickColour() { return Math.random() < 0.7 ? pick(PRIMARY) : pick(ACCENT); }
 	function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
 
 	function targetCount() {
@@ -161,7 +159,7 @@
 		st.width = len + 'px';
 		st.height = thick + 'px';
 		st.borderRadius = thick + 'px';
-		st.background = pick(COLOURS);
+		st.background = pickColour();
 		st.opacity = '0';
 		st.willChange = 'transform, opacity';
 		layer.appendChild(el);
@@ -172,6 +170,7 @@
 			tx: spot.x, ty: spot.y, // resting anchor (target)
 			x: spot.x, y: spot.y,   // current position (eases toward target)
 			bornAt: now,
+			lifespan: rand(LIFE_MIN, LIFE_MAX),
 			enterDur: rand(ENTER_MIN, ENTER_MAX),
 			startScale: rand(START_SCALE_MIN, START_SCALE_MAX),
 			dropY: rand(12, 28), // small vertical drop during the fall-in
@@ -195,11 +194,23 @@
 	}
 
 	function render(s, now, t) {
-		var p = Math.min((now - s.bornAt) / s.enterDur, 1);
+		var age = now - s.bornAt;
+
+		// fall-in: large -> resting size, fading and dropping into place
+		var p = Math.min(age / s.enterDur, 1);
 		var e = easeOut(p);
 		var scale = s.startScale + (1 - s.startScale) * e;
 		var drop = s.dropY * (1 - e);
-		s.el.style.opacity = (TARGET_OPACITY * Math.min(p * 1.4, 1)).toFixed(3);
+		var opacity = TARGET_OPACITY * Math.min(p * 1.4, 1);
+
+		// end of life: recede on Z and fade out before being culled
+		if (age > s.lifespan) {
+			var x = Math.min((age - s.lifespan) / EXIT_DUR, 1);
+			scale = 1 - 0.6 * x;
+			drop = 0;
+			opacity = TARGET_OPACITY * (1 - x);
+		}
+		s.el.style.opacity = opacity.toFixed(3);
 
 		var sx = Math.sin(t * s.swaySpeed + s.swayPhase) * s.swayAmpX;
 		var sy = Math.cos(t * s.swaySpeed + s.swayPhase * 1.3) * s.swayAmpY;
@@ -231,6 +242,13 @@
 		var t = now / 1000;
 		for (var i = sprinkles.length - 1; i >= 0; i--) {
 			var s = sprinkles[i];
+
+			// Retire old sprinkles once they've fully faded, freeing a slot.
+			if (now - s.bornAt > s.lifespan + EXIT_DUR) {
+				removeSprinkle(i);
+				continue;
+			}
+
 			// Step aside only when content has moved onto the resting spot.
 			if (blocked(s.tx, s.ty, s.halfW)) relocate(s);
 			s.x += (s.tx - s.x) * EASE;
