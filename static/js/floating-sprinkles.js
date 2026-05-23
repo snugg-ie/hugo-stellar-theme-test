@@ -1,9 +1,10 @@
 /*
  * Floating sprinkles
- * A gentle, decorative animation: small "sprinkle" capsules (inspired by
- * static/images/sprinkles/vector/*.svg) drift, bob and slowly spin across the
- * page while steering clear of the on-screen text and media so reading is
- * never obscured.
+ * Small "sprinkle" capsules (inspired by static/images/sprinkles/vector/*.svg)
+ * are sprinkled onto the page over time. Each one "falls in" along the Z axis —
+ * starting large and shrinking to its resting size — landing on a text-free
+ * spot. Once landed it stays mostly still with a gentle sway, and eases aside
+ * to the nearest clear space if text later moves onto it (e.g. on scroll).
  */
 (function () {
 	'use strict';
@@ -11,19 +12,12 @@
 	var reduceMotion = window.matchMedia &&
 		window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-	// Colours lifted from the sprinkle motif (classic + "me" palettes).
-	var COLOURS = [
-		'#4799ff', // blue
-		'#ff3b3b', // red
-		'#33a600', // green
-		'#cf4f9e', // pink
-		'#3b40bd', // indigo
-		'#008c9c', // teal
-		'#f5a623', // amber
-		'#c80064'  // magenta
-	];
+	// Sprinkle colours, weighted toward classic red / green / blue. Accent
+	// hues add variety; yellow, brown and black are left out as off-palette.
+	var PRIMARY = ['#ff3b3b', '#33a600', '#4799ff']; // red, green, blue
+	var ACCENT = ['#cf4f9e', '#3b40bd', '#008c9c', '#c80064']; // pink, indigo, teal, magenta
 
-	// Elements whose on-screen rectangles the sprinkles avoid.
+	// Elements whose on-screen rectangles the sprinkles keep clear of.
 	var OBSTACLE_SELECTOR = [
 		'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 		'p', 'li', 'a', 'button', '.button',
@@ -32,25 +26,49 @@
 		'img', 'picture', 'svg'
 	].join(',');
 
-	var OBSTACLE_PADDING = 14;   // breathing room kept around content (px)
-	var RESCAN_INTERVAL = 300;   // how often obstacle rects are refreshed (ms)
-	var MIN_SPEED = 5;           // px/s — keeps sprinkles gently drifting
-	var MAX_SPEED = 50;          // px/s — caps how fast avoidance can fling them
+	var OBSTACLE_PADDING = 14;  // breathing room kept around content (px)
+	var RESCAN_INTERVAL = 300;  // idle obstacle refresh cadence (ms)
+	var SCAN_THROTTLE = 100;    // fastest obstacle refresh while scrolling (ms)
+	var EASE = 0.08;            // how quickly a sprinkle glides to a new spot
+	var TARGET_OPACITY = 0.72;
+	var ENTER_MIN = 700, ENTER_MAX = 1300;   // "sprinkle in" duration (ms)
+	var START_SCALE_MIN = 2.0, START_SCALE_MAX = 2.8;
+	// Each sprinkle lingers for a while, then recedes and is replaced, so a
+	// gentle trickle of fresh ones keeps coming.
+	var LIFE_MIN = 14000, LIFE_MAX = 32000;
+	var EXIT_DUR = 900;                      // fade-out duration (ms)
+	// Gap between new sprinkles curves from a quick initial rush (near-empty)
+	// out to a slow trickle (near the density cap).
+	var SPAWN_FAST = 120, SPAWN_SLOW = 1100;
 
 	var layer = null;
 	var sprinkles = [];
 	var obstacles = [];
+	var cap = 0;
 	var vw = 0, vh = 0;
 	var rafId = null;
-	var lastTime = 0;
 	var lastScan = 0;
+	var lastSpawn = 0;
+	var nextSpawnGap = 0;
+	var scrollDirty = false;
+	var resumeReset = false;
 
 	function rand(min, max) { return min + Math.random() * (max - min); }
 	function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+	function pickColour() { return Math.random() < 0.7 ? pick(PRIMARY) : pick(ACCENT); }
+	function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
 
 	function targetCount() {
-		var n = Math.round((window.innerWidth * window.innerHeight) / 70000);
-		return Math.max(6, Math.min(n, 28));
+		var n = Math.round((window.innerWidth * window.innerHeight) / 56000);
+		return Math.max(8, Math.min(n, 34));
+	}
+
+	// Spawn cadence: short gaps while the page is sparse (the opening rush),
+	// easing out to long gaps as it approaches the cap.
+	function spawnGap() {
+		var f = cap > 0 ? Math.min(sprinkles.length / cap, 1) : 1;
+		var base = SPAWN_FAST + (SPAWN_SLOW - SPAWN_FAST) * Math.pow(f, 1.6);
+		return base * rand(0.85, 1.15);
 	}
 
 	function makeLayer() {
@@ -90,27 +108,47 @@
 		}
 	}
 
-	function inObstacle(x, y) {
+	// Is the point (plus a margin for the capsule's reach) over any content?
+	function blocked(x, y, margin) {
 		for (var i = 0; i < obstacles.length; i++) {
 			var o = obstacles[i];
-			if (x >= o.left && x <= o.right && y >= o.top && y <= o.bottom) {
+			if (x >= o.left - margin && x <= o.right + margin &&
+				y >= o.top - margin && y <= o.bottom + margin) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	// Try to find a spot clear of text; fall back to anywhere after a few tries.
-	function freeSpot() {
-		for (var i = 0; i < 30; i++) {
-			var x = rand(0, vw);
-			var y = rand(0, vh);
-			if (!inObstacle(x, y)) return { x: x, y: y };
+	// A spot anywhere on screen clear of content; falls back after some tries.
+	function freeSpot(margin) {
+		for (var i = 0; i < 40; i++) {
+			var x = rand(margin, vw - margin);
+			var y = rand(margin, vh - margin);
+			if (!blocked(x, y, margin)) return { x: x, y: y };
 		}
-		return { x: rand(0, vw), y: rand(0, vh) };
+		return { x: rand(margin, vw - margin), y: rand(margin, vh - margin) };
 	}
 
-	function makeSprinkle() {
+	// The nearest clear spot to a sprinkle's current anchor; keeps moves small.
+	function relocate(s) {
+		var margin = s.halfW;
+		for (var radius = 24; radius <= 240; radius += 24) {
+			var start = Math.random() * Math.PI * 2;
+			for (var k = 0; k < 16; k++) {
+				var a = start + (k / 16) * Math.PI * 2;
+				var nx = s.tx + Math.cos(a) * radius;
+				var ny = s.ty + Math.sin(a) * radius;
+				if (nx < margin || nx > vw - margin || ny < margin || ny > vh - margin) continue;
+				if (!blocked(nx, ny, margin)) { s.tx = nx; s.ty = ny; return; }
+			}
+		}
+		var spot = freeSpot(margin);
+		s.tx = spot.x;
+		s.ty = spot.y;
+	}
+
+	function makeSprinkle(now) {
 		var len = rand(14, 24);
 		var thick = rand(4, 6);
 		var el = document.createElement('span');
@@ -121,117 +159,108 @@
 		st.width = len + 'px';
 		st.height = thick + 'px';
 		st.borderRadius = thick + 'px';
-		st.background = pick(COLOURS);
-		st.opacity = '0.72';
-		st.willChange = 'transform';
+		st.background = pickColour();
+		st.opacity = '0';
+		st.willChange = 'transform, opacity';
 		layer.appendChild(el);
 
-		var spot = freeSpot();
+		var spot = freeSpot(len / 2);
 		return {
 			el: el,
-			x: spot.x,
-			y: spot.y,
-			vx: rand(-10, 10),
-			vy: rand(-10, 10),
-			angle: rand(0, 360),
-			spin: rand(-15, 15),
-			bobPhase: rand(0, Math.PI * 2),
-			bobAmp: rand(3, 7),
-			bobSpeed: rand(0.4, 1.0),
+			tx: spot.x, ty: spot.y, // resting anchor (target)
+			x: spot.x, y: spot.y,   // current position (eases toward target)
+			bornAt: now,
+			lifespan: rand(LIFE_MIN, LIFE_MAX),
+			enterDur: rand(ENTER_MIN, ENTER_MAX),
+			startScale: rand(START_SCALE_MIN, START_SCALE_MAX),
+			dropY: rand(12, 28), // small vertical drop during the fall-in
+			swayPhase: rand(0, Math.PI * 2),
+			swaySpeed: rand(0.3, 0.7),
+			swayAmpX: rand(1.5, 3.5),
+			swayAmpY: rand(2, 4),
+			baseAngle: rand(0, 360),
+			rotPhase: rand(0, Math.PI * 2),
+			rotSpeed: rand(0.2, 0.5),
+			rotAmp: rand(3, 8),
 			halfW: len / 2,
 			halfH: thick / 2
 		};
 	}
 
-	function reconcileCount() {
-		var want = targetCount();
-		while (sprinkles.length < want) sprinkles.push(makeSprinkle());
-		while (sprinkles.length > want) {
-			var gone = sprinkles.pop();
-			if (gone.el.parentNode) gone.el.parentNode.removeChild(gone.el);
-		}
+	function removeSprinkle(i) {
+		var s = sprinkles[i];
+		if (s.el.parentNode) s.el.parentNode.removeChild(s.el);
+		sprinkles.splice(i, 1);
 	}
 
-	// Push velocity away from the nearest edge of any text rect the sprinkle
-	// has wandered into, so it slides back out toward open space.
-	function repel(s, cx, cy, dt) {
-		for (var i = 0; i < obstacles.length; i++) {
-			var o = obstacles[i];
-			if (cx < o.left || cx > o.right || cy < o.top || cy > o.bottom) continue;
-			var dl = cx - o.left;
-			var dr = o.right - cx;
-			var dtp = cy - o.top;
-			var db = o.bottom - cy;
-			var m = Math.min(dl, dr, dtp, db);
-			var push = 60 * dt;
-			if (m === dl) s.vx -= push;
-			else if (m === dr) s.vx += push;
-			else if (m === dtp) s.vy -= push;
-			else s.vy += push;
-		}
-	}
+	function render(s, now, t) {
+		var age = now - s.bornAt;
 
-	function clampSpeed(s) {
-		var sp = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-		if (sp > MAX_SPEED) {
-			s.vx *= MAX_SPEED / sp;
-			s.vy *= MAX_SPEED / sp;
-		} else if (sp < MIN_SPEED) {
-			if (sp < 0.001) {
-				s.vx = rand(-MIN_SPEED, MIN_SPEED);
-				s.vy = rand(-MIN_SPEED, MIN_SPEED);
-			} else {
-				s.vx *= MIN_SPEED / sp;
-				s.vy *= MIN_SPEED / sp;
-			}
+		// fall-in: large -> resting size, fading and dropping into place
+		var p = Math.min(age / s.enterDur, 1);
+		var e = easeOut(p);
+		var scale = s.startScale + (1 - s.startScale) * e;
+		var drop = s.dropY * (1 - e);
+		var opacity = TARGET_OPACITY * Math.min(p * 1.4, 1);
+
+		// end of life: recede on Z and fade out before being culled
+		if (age > s.lifespan) {
+			var x = Math.min((age - s.lifespan) / EXIT_DUR, 1);
+			scale = 1 - 0.6 * x;
+			drop = 0;
+			opacity = TARGET_OPACITY * (1 - x);
 		}
+		s.el.style.opacity = opacity.toFixed(3);
+
+		var sx = Math.sin(t * s.swaySpeed + s.swayPhase) * s.swayAmpX;
+		var sy = Math.cos(t * s.swaySpeed + s.swayPhase * 1.3) * s.swayAmpY;
+		var rot = s.baseAngle + Math.sin(t * s.rotSpeed + s.rotPhase) * s.rotAmp;
+
+		s.el.style.transform =
+			'translate(' + (s.x + sx - s.halfW).toFixed(2) + 'px,' +
+			(s.y + sy - drop - s.halfH).toFixed(2) + 'px) rotate(' +
+			rot.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
 	}
 
 	function frame(now) {
-		if (!lastTime) lastTime = now;
-		var dt = Math.min((now - lastTime) / 1000, 0.05);
-		lastTime = now;
+		if (resumeReset) { lastSpawn = now; resumeReset = false; }
 
-		if (now - lastScan > RESCAN_INTERVAL) {
+		if ((scrollDirty && now - lastScan > SCAN_THROTTLE) ||
+			now - lastScan > RESCAN_INTERVAL) {
 			refreshObstacles();
 			lastScan = now;
+			scrollDirty = false;
+		}
+
+		// Continuously sprinkle new ones in, up to the current density cap.
+		if (sprinkles.length < cap && now - lastSpawn > nextSpawnGap) {
+			sprinkles.push(makeSprinkle(now));
+			lastSpawn = now;
+			nextSpawnGap = spawnGap();
 		}
 
 		var t = now / 1000;
-		for (var i = 0; i < sprinkles.length; i++) {
+		for (var i = sprinkles.length - 1; i >= 0; i--) {
 			var s = sprinkles[i];
 
-			// faint wander so motion never looks mechanical
-			s.vx += rand(-6, 6) * dt;
-			s.vy += rand(-6, 6) * dt;
+			// Retire old sprinkles once they've fully faded, freeing a slot.
+			if (now - s.bornAt > s.lifespan + EXIT_DUR) {
+				removeSprinkle(i);
+				continue;
+			}
 
-			s.x += s.vx * dt;
-			s.y += s.vy * dt;
+			// Step aside only when content has moved onto the resting spot.
+			if (blocked(s.tx, s.ty, s.halfW)) relocate(s);
+			s.x += (s.tx - s.x) * EASE;
+			s.y += (s.ty - s.y) * EASE;
 
-			// gentle floating bob, applied at render time only
-			var bx = Math.cos(t * s.bobSpeed + s.bobPhase) * s.bobAmp * 0.6;
-			var by = Math.sin(t * s.bobSpeed + s.bobPhase) * s.bobAmp;
-			var cx = s.x + bx;
-			var cy = s.y + by;
-
-			repel(s, cx, cy, dt);
-
-			// keep on-screen, reflecting softly off the edges
-			if (s.x < 0) { s.x = 0; s.vx = Math.abs(s.vx); }
-			else if (s.x > vw) { s.x = vw; s.vx = -Math.abs(s.vx); }
-			if (s.y < 0) { s.y = 0; s.vy = Math.abs(s.vy); }
-			else if (s.y > vh) { s.y = vh; s.vy = -Math.abs(s.vy); }
-
-			s.vx *= 0.985;
-			s.vy *= 0.985;
-			clampSpeed(s);
-
-			s.angle += s.spin * dt;
-
-			s.el.style.transform =
-				'translate(' + (cx - s.halfW).toFixed(2) + 'px,' +
-				(cy - s.halfH).toFixed(2) + 'px) rotate(' +
-				s.angle.toFixed(2) + 'deg)';
+			// Tidy up any that have ended up fully off the page.
+			if (s.x < -s.halfW || s.x > vw + s.halfW ||
+				s.y < -s.halfW || s.y > vh + s.halfW) {
+				removeSprinkle(i);
+				continue;
+			}
+			render(s, now, t);
 		}
 
 		rafId = window.requestAnimationFrame(frame);
@@ -239,7 +268,6 @@
 
 	function start() {
 		if (rafId !== null) return;
-		lastTime = 0;
 		rafId = window.requestAnimationFrame(frame);
 	}
 
@@ -249,27 +277,34 @@
 		rafId = null;
 	}
 
-	// Static placement for visitors who prefer reduced motion.
+	// Static placement for visitors who prefer reduced motion (no fall-in).
 	function placeStatic() {
 		refreshObstacles();
+		while (sprinkles.length < cap) sprinkles.push(makeSprinkle(0));
+		while (sprinkles.length > cap) removeSprinkle(sprinkles.length - 1);
 		for (var i = 0; i < sprinkles.length; i++) {
 			var s = sprinkles[i];
+			if (blocked(s.tx, s.ty, s.halfW)) relocate(s);
+			s.x = s.tx;
+			s.y = s.ty;
+			s.el.style.opacity = String(TARGET_OPACITY);
 			s.el.style.transform =
 				'translate(' + (s.x - s.halfW).toFixed(2) + 'px,' +
 				(s.y - s.halfH).toFixed(2) + 'px) rotate(' +
-				s.angle.toFixed(2) + 'deg)';
+				s.baseAngle.toFixed(2) + 'deg)';
 		}
 	}
 
 	function onResize() {
 		vw = window.innerWidth;
 		vh = window.innerHeight;
+		cap = targetCount();
 		refreshObstacles();
-		reconcileCount();
+		while (sprinkles.length > cap) removeSprinkle(sprinkles.length - 1);
 		for (var i = 0; i < sprinkles.length; i++) {
 			var s = sprinkles[i];
-			if (s.x > vw) s.x = vw;
-			if (s.y > vh) s.y = vh;
+			s.tx = Math.max(s.halfW, Math.min(s.tx, vw - s.halfW));
+			s.ty = Math.max(s.halfW, Math.min(s.ty, vh - s.halfW));
 		}
 		if (reduceMotion) placeStatic();
 	}
@@ -278,9 +313,9 @@
 		if (layer) return;
 		vw = window.innerWidth;
 		vh = window.innerHeight;
+		cap = targetCount();
 		makeLayer();
 		refreshObstacles();
-		reconcileCount();
 
 		window.addEventListener('resize', onResize);
 
@@ -289,9 +324,11 @@
 			return;
 		}
 
+		nextSpawnGap = spawnGap();
+		window.addEventListener('scroll', function () { scrollDirty = true; }, { passive: true });
 		document.addEventListener('visibilitychange', function () {
-			if (document.hidden) stop();
-			else start();
+			if (document.hidden) { stop(); }
+			else { resumeReset = true; start(); }
 		});
 
 		start();
