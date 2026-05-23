@@ -1101,3 +1101,76 @@ video {
 				}
 
 		}
+
+
+/* ---------------------------------------------------------------------------
+   Sprinkle divider — opt-in decorative rule with the sprinkle logo centred.
+   Apply to an <hr> (or block element):
+     <hr class="sprinkle-divider">                              clean rule + logo
+     <hr class="sprinkle-divider sprinkle-divider--scattered">  sprinkle dots + logo
+     <hr class="sprinkle-divider sprinkle-divider--line">       full sprinkle line, no logo
+   --------------------------------------------------------------------------- */
+.sprinkle-divider {
+	--sd-line: rgba(99, 99, 99, 0.4);
+	--sd-icon: 40px;
+	--sd-gap: 52px;
+	display: flex;
+	align-items: center;
+	gap: var(--sd-gap);
+	width: 100%;
+	height: 48px;
+	border: 0;
+	margin: 2.5em auto;
+	background-image: url("/images/sprinkles/vector/sprinkles.svg");
+	background-position: center;
+	background-size: var(--sd-icon) var(--sd-icon);
+	background-repeat: no-repeat;
+}
+
+.sprinkle-divider::before,
+.sprinkle-divider::after {
+	content: "";
+	flex: 1 1 auto;
+	height: 2px;
+	border-radius: 2px;
+	background-color: var(--sd-line);
+}
+
+/* Scattered: a trail of sprinkle dots either side of the logo. */
+.sprinkle-divider--scattered::before,
+.sprinkle-divider--scattered::after {
+	height: 16px;
+	border-radius: 0;
+	background-color: transparent;
+	background-image: url("/images/sprinkles/dividers/scatter.svg");
+	background-position: center;
+	background-size: 64px 16px;
+	background-repeat: round no-repeat;
+}
+
+/* Full sprinkle line: capsules run all the way through, no centre logo.
+   background-repeat:round keeps whole capsules (never sliced) at the edges. */
+.sprinkle-divider--line {
+	gap: 0;
+	background-image: none;
+}
+
+.sprinkle-divider--line::before {
+	height: 18px;
+	border-radius: 0;
+	background-color: transparent;
+	background-image: url("/images/sprinkles/dividers/line.svg");
+	background-position: center;
+	background-size: 72px 18px;
+	background-repeat: round no-repeat;
+}
+
+.sprinkle-divider--line::after {
+	display: none;
+}
+
+/* Lighten the plain rule on the dark theme. */
+body.force-theme-dark .sprinkle-divider,
+#main.force-theme-dark .sprinkle-divider {
+	--sd-line: rgba(245, 235, 240, 0.4);
+}
