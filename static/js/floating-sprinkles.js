@@ -23,7 +23,8 @@
 		'p', 'li', 'a', 'button', '.button',
 		'blockquote', 'figcaption', 'label', 'time',
 		'td', 'th', 'input', 'textarea',
-		'img', 'picture', 'svg'
+		'img', 'picture', 'svg',
+		'[data-masonry]' // treat the whole masonry grid as one block, not its gutters
 	].join(',');
 
 	var OBSTACLE_PADDING = 14;  // breathing room kept around content (px)
