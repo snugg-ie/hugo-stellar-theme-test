@@ -1250,3 +1250,33 @@ body.force-theme-dark .sprinkle-divider,
 #main hr:not(.sprinkle-divider) {
 	border-bottom-color: rgba(170, 90, 115, 0.3);
 }
+
+/* The status.lol widget is deferred, so it injects after first paint. Reserve its
+   space (and show a matching rose skeleton) until .statuslol loads, so it doesn't
+   shift the post grid down. min-height should roughly match the live widget. */
+.snuggle-status {
+	min-height: 7em;
+}
+
+.snuggle-status:not(:has(.statuslol)) {
+	display: block;
+	width: 16em;
+	max-width: 100%;
+	background: rgba(170, 90, 115, 0.15) !important;
+	border-radius: 0.6em;
+	position: relative;
+	overflow: hidden;
+}
+
+.snuggle-status:not(:has(.statuslol))::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+	transform: translateX(-100%);
+	animation: card-skeleton 1.3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.snuggle-status:not(:has(.statuslol))::after { animation: none; }
+}
