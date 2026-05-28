@@ -14,7 +14,7 @@
       </ul>
     </div>
     {{ if .Site.Params.intro.image }}
-      <span class="image"><picture>  <source srcset="/avatar.webp" type="image/webp"><source srcset="/avatar.jpg" type="image/jpeg"><img class="u-photo" width="512" height="512" src="{{ replaceRE `([?&])s=[0-9]+` `${1}s=512` .Site.Params.intro.image }}" alt="Evie Snuggle's portrait with a garden behind" /></picture></span>
+      <span class="image"><picture>  <source srcset="/avatar.webp" type="image/webp"><source srcset="/avatar.jpg" type="image/jpeg"><img class="u-photo" src="{{ .Site.Params.intro.image }}" alt="Evie Snuggle's portrait with a garden behind" /></picture></span>
     {{ end }}
     <div style="display: none;">
       <a class="u-url" style="display: none;" href="https://snugg.ie"></a>
