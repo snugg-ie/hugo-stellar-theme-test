@@ -1,8 +1,14 @@
-{{- /* Rewrites micro.blog-hosted JPG <img> in post content to a small/medium srcset.
+{{- /* Post-processes rendered post content for performance. */ -}}
+{{- $c := . -}}
+{{- /* 1. Rewrite micro.blog-hosted JPG <img> to a small/medium srcset.
        micro.blog can resize .jpg via -s (300px) and -m (~1000px) variants but NOT .webp,
        so .webp and external images are left untouched (graceful during webp->jpg migration).
        micro.blog hosts self-hosted images at the blog domain (absolute https://snugg.ie/uploads/
        on production, relative uploads/... on test builds) plus absolute cdn.uploads.micro.blog
        URLs; match all of those but no external hosts. Strip any existing -xl/-m/-s suffix first
        so abc-xl.jpg rebuilds from the base (abc-s.jpg), not the 404 abc-xl-s.jpg. */ -}}
-{{- return (. | replaceRE `src="((?:/?uploads/|https://(?:snugg\.ie|[a-z0-9-]+\.micro\.blog)/uploads/|https://cdn\.uploads\.micro\.blog/)[^"]*?)(?:-xl|-m|-s)?\.(jpe?g)"` `src="${1}-s.${2}" srcset="${1}-s.${2} 300w, ${1}-m.${2} 1000w" sizes="(min-width: 571px) 32vw, 100vw"`) -}}
+{{- $c = $c | replaceRE `src="((?:/?uploads/|https://(?:snugg\.ie|[a-z0-9-]+\.micro\.blog)/uploads/|https://cdn\.uploads\.micro\.blog/)[^"]*?)(?:-xl|-m|-s)?\.(jpe?g)"` `src="${1}-s.${2}" srcset="${1}-s.${2} 300w, ${1}-m.${2} 1000w" sizes="(min-width: 571px) 32vw, 100vw"` -}}
+{{- /* 2. Force self-hosted <video> to preload="none". micro.blog defaults to preload="metadata",
+       which for HLS buffers the first segments (several MB) on page load. */ -}}
+{{- $c = $c | replaceRE `(<video[^>]*?)\spreload="(?:metadata|auto)"` `${1} preload="none"` -}}
+{{- return $c -}}
