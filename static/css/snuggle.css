@@ -1197,3 +1197,21 @@ body.force-theme-dark .sprinkle-divider,
 	width: 1.25em;
 	height: 1.25em;
 }
+
+/* Masonry grid reveal. The cards are server-rendered but positioned by masonry's
+   JS; until that runs the floated grid would collapse to 0 height (an empty "cut"
+   below the intro). flow-root contains the floats so the space is always reserved,
+   and is-loading holds the cards hidden until masonry has laid them out, then they
+   fade in (avoids the float->masonry reposition flash). JS removes is-loading; a
+   <noscript> rule and a JS timeout guarantee the cards are never stuck hidden. */
+.grid {
+	display: flow-root;
+}
+
+.grid-item {
+	transition: opacity 0.35s ease;
+}
+
+.grid.is-loading .grid-item {
+	opacity: 0;
+}
