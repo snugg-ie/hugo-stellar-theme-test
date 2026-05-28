@@ -436,10 +436,6 @@ html {
 	flex-basis: 40%;
 }
 
-.card:hover {
-	transform: scale(1.03);
-}
-
 .card a {
 	border-bottom: none;
 }
