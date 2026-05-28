@@ -56,7 +56,7 @@
                 </div>
                 {{ else }}
                 <div class="e-content">
-                {{ .Content }}
+                {{ partial "responsive-img.html" .Content | safeHTML }}
                 </div>
                 {{ end }}
                 {{ partial "syndication.html" . }}
@@ -100,7 +100,7 @@
                 </div>
                 {{ else }}
                 <div class="e-content">
-                  {{ .Content | replaceRE "<img" "<img loading=\"lazy\"" | replaceRE "^<a href=\".*\">(.*)</a>" "" | replaceRE "^<p><a href=\".*\">(.*)</a>" "<p>$1" | safeHTML }}
+                  {{ partial "responsive-img.html" .Content | replaceRE "<img" "<img loading=\"lazy\"" | replaceRE "^<a href=\".*\">(.*)</a>" "" | replaceRE "^<p><a href=\".*\">(.*)</a>" "<p>$1" | safeHTML }}
                 </div>
                 {{ end }}
                 {{ partial "syndication.html" . }}
