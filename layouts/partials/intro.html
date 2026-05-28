@@ -19,7 +19,7 @@
     </div>
     {{ if .Site.Params.intro.image }}
     <div style="display: flex; flex-direction: column; align-items: center;">
-      <span class="image"><picture>  <img class="u-photo" rel="preload" src="{{ .Site.Params.intro.image }}" alt="Evie Snuggle's portrait with a garden behind" /></picture></span>
+      <span class="image"><picture>  <img class="u-photo" width="512" height="512" src="{{ replaceRE `([?&])s=[0-9]+` `${1}s=512` .Site.Params.intro.image }}" alt="Evie Snuggle's portrait with a garden behind" /></picture></span>
 	</div>
     {{ end }}
     <div style="display: none;">
