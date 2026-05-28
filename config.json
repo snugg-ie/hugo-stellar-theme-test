@@ -30,7 +30,7 @@
   "params": {
     "author": {
 	      "name": "Snuggle",
-	      "avatar": "https://gravatar.com/avatar/afbb3e63ac19530513f5aa8f042ad0c9?s=800&d=robohash&r=x",
+	      "avatar": "https://gravatar.com/avatar/afbb3e63ac19530513f5aa8f042ad0c9?s=512&d=robohash&r=x",
 	      "username": "snuggle",
 	      "activitypub": {
 	          "username": "snuggle",
@@ -244,7 +244,7 @@
       },
       "intro": {
           "description": "My name is Evie, but online I go by @​snuggle. I work in tech as a site reliability engineer (SRE), always herding computers around with code! 🐄👩🏽‍💻",
-          "image": "https://gravatar.com/avatar/afbb3e63ac19530513f5aa8f042ad0c9?s=800&d=robohash&r=x",
+          "image": "https://gravatar.com/avatar/afbb3e63ac19530513f5aa8f042ad0c9?s=512&d=robohash&r=x",
           "title": "Evie Snuggle",
           "action": [
               {
