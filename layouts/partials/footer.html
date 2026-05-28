@@ -8,10 +8,10 @@
     <p>You've reached the bottom! Here's where you can find me around on the internet:
       {{ if .Site.Params.footer.social_list.enable }}
       <ul class="icons">
-          <li><a href="https://snuggle.link/mastodon" class="icon alt fa-brands fa-mastodon" rel="me"><span class="label">@snuggle@tech.lgbt Mastodon</span></a></li>
-          <li><a href="https://snuggle.link/bluesky" class="icon alt fa-brands fa-bluesky" rel="me"><span class="label">@snugg.ie Bluesky</span></a></li>
-          <li><a href="https://snuggle.link/threads" class="icon alt fa-brands fa-threads" rel="me"><span class="label">@snugg.ie Threads</span></a></li>
-          <li><a href="https://snuggle.link/github" class="icon alt fa-brands fa-github" rel="me"><span class="label">@snuggle GitHub</span></a></li> 
+          <li><a href="https://snuggle.link/mastodon" class="icon alt" rel="me">{{ partial "icon.html" "mastodon" }}<span class="label">@snuggle@tech.lgbt Mastodon</span></a></li>
+          <li><a href="https://snuggle.link/bluesky" class="icon alt" rel="me">{{ partial "icon.html" "bluesky" }}<span class="label">@snugg.ie Bluesky</span></a></li>
+          <li><a href="https://snuggle.link/threads" class="icon alt" rel="me">{{ partial "icon.html" "threads" }}<span class="label">@snugg.ie Threads</span></a></li>
+          <li><a href="https://snuggle.link/github" class="icon alt" rel="me">{{ partial "icon.html" "github" }}<span class="label">@snuggle GitHub</span></a></li>
       </ul>
     {{ end }}
     <section id="intro" class="main h-card">
