@@ -25,7 +25,8 @@
 					<!--<header class="major">
 						<h2>My Posts</h2>
 					</header>-->
-					<div class="grid" data-masonry='{ "itemSelector": ".grid-item", "isFitWidth": true, "gutter": 10 }'>
+					<noscript><style>.grid.is-loading .grid-item{opacity:1}</style></noscript>
+						<div class="grid is-loading" data-masonry='{ "itemSelector": ".grid-item", "isFitWidth": true, "gutter": 10 }'>
             {{ $pinned := .Site.Taxonomies.categories.pinned }}
             {{ if $pinned }}
             {{ range last 3 $pinned }}
@@ -145,6 +146,20 @@
 		<!-- Scripts -->
 		{{ partial "scripts.html" . }}
 		<script src="{{ .Site.BaseURL }}js/masonry.pkgd.min.js"></script>
+		<script>
+		(function () {
+			var grid = document.querySelector('.grid[data-masonry]');
+			if (!grid) return;
+			var done = false;
+			function reveal() { if (done) return; done = true; grid.classList.remove('is-loading'); }
+			(function check() {
+				if (done) return;
+				if (grid.style.height) reveal();   // masonry sets an inline height once laid out
+				else requestAnimationFrame(check);
+			})();
+			setTimeout(reveal, 3000);              // safety net: never leave cards hidden
+		})();
+		</script>
 		{{- partial "footer_custom.html" . }}
 	</body>
 </html>
