@@ -436,6 +436,11 @@ html {
 	flex-basis: 40%;
 }
 
+.card:hover {
+	transform: translateY(-3px);
+	border-color: #AA5A73;
+}
+
 .card a {
 	border-bottom: none;
 }
