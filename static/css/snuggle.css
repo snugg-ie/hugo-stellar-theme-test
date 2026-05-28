@@ -1302,3 +1302,16 @@ body.force-theme-dark .sprinkle-divider,
 @media (prefers-reduced-motion: reduce) {
 	.snuggle-status:not(:has(.statuslol))::after { animation: none; }
 }
+
+/* In dark mode #main and the nav are the same colour as the dark end of the body
+   gradient, so they dissolve into the page. Add a subtle rose edge so they read as
+   distinct surfaces, like the white sheet does in light mode. The nav gets the edge
+   on its top and sides (open bottom, toward the content). */
+#main.force-theme-dark {
+	border: 1px solid rgba(170, 90, 115, 0.35);
+}
+
+#nav.force-theme-dark {
+	border: 1px solid rgba(170, 90, 115, 0.35);
+	border-bottom: 0;
+}
