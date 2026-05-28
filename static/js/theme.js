@@ -30,9 +30,10 @@ function reset_theme() {
 	});
 
 	if (document.getElementById("nav")) {
-		localStorage.removeItem('theme');
-		[...document.querySelector('nav').classList].forEach((className, i) => {
-			document.getElementById('nav').classList.remove(className);
+		[...document.getElementById('nav').classList].forEach(className => {
+			if (className.startsWith('force-theme-')) {
+				document.getElementById('nav').classList.remove(className);
+			}
 		});
 	}
 
