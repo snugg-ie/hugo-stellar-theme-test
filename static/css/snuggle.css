@@ -1210,7 +1210,7 @@ body.force-theme-dark .sprinkle-divider,
    opacity (not display:none) so the card keeps its true height — masonry lays out
    correctly and nothing shifts when the content appears. */
 .grid.is-loading .card {
-	background: #e6e6e9;
+	background: rgba(170, 90, 115, 0.15);
 	cursor: default;
 }
 
@@ -1241,9 +1241,15 @@ body.force-theme-dark .sprinkle-divider,
 
 /* Dark-theme skeleton tones */
 #main.force-theme-dark .grid.is-loading .card {
-	background: #3a3a3f;
+	background: rgba(170, 90, 115, 0.3);
 }
 
 #main.force-theme-dark .grid.is-loading .card::after {
 	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+/* Normal content rule: themed rose to match the card border (was #ddd).
+   The fancy .sprinkle-divider draws its own line, so leave it alone. */
+#main hr:not(.sprinkle-divider) {
+	border-bottom-color: rgba(170, 90, 115, 0.3);
 }
