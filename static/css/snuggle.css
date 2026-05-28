@@ -1207,6 +1207,7 @@ body.force-theme-dark .sprinkle-divider,
    correctly and nothing shifts when the content appears. */
 .grid.is-loading .card {
 	background: rgba(170, 90, 115, 0.15);
+	border-color: transparent;
 	cursor: default;
 }
 
