@@ -1206,6 +1206,23 @@ body.force-theme-dark .sprinkle-divider,
 	display: flow-root;
 }
 
+/* Before masonry's JS runs, the floated cards have only a vertical gutter, so the
+   skeleton looked smushed horizontally. Lay the loading grid out as a gapped flex
+   row (matching masonry's 10px gutter) without touching the card width, so masonry
+   still measures the columns correctly. Once masonry positions the items (absolute)
+   these flex props no longer apply, and the reveal removes is-loading entirely. */
+.grid.is-loading {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	column-gap: 10px;
+}
+
+.grid.is-loading .grid-item {
+	flex: 0 0 32%;
+	float: none;
+}
+
 /* YouTube-style loading skeleton: each card shows as a grey shimmer block until
    masonry has positioned it, then the real content fades in. Content is hidden with
    opacity (not display:none) so the card keeps its true height — masonry lays out
