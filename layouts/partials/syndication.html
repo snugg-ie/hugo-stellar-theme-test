@@ -2,13 +2,13 @@
 {{ if or ( .Params.bluesky ) ( .Params.mastodon ) (.Params.threads) }}
 <span class="syndication">
 	{{ if .Params.mastodon.id }}
-	<a class="u-syndication icon fa-brands fa-mastodon" href="https://tech.lgbt/@Snuggle/{{ ( print .Params.mastodon.id ) | safeHTMLAttr }}" ></a>
-	{{ end }} 
+	<a class="u-syndication icon" aria-label="View on Mastodon" href="https://tech.lgbt/@Snuggle/{{ ( print .Params.mastodon.id ) | safeHTMLAttr }}" >{{ partial "icon.html" "mastodon" }}</a>
+	{{ end }}
 	{{ if .Params.bluesky.url }}
-	<a class="u-syndication icon fa-brands fa-bluesky" href='{{ replaceRE "at://(.*)/(.*)/(.*)" "https://bsky.app/profile/snugg.ie/post/$3" .Params.bluesky.url }}' ></a>
-	{{ end }}  
+	<a class="u-syndication icon" aria-label="View on Bluesky" href='{{ replaceRE "at://(.*)/(.*)/(.*)" "https://bsky.app/profile/snugg.ie/post/$3" .Params.bluesky.url }}' >{{ partial "icon.html" "bluesky" }}</a>
+	{{ end }}
 	{{ if .Params.threads.url }}
-	<a class="u-syndication icon fa-brands fa-threads" {{ printf "href=%q" .Params.threads.url | safeHTMLAttr }} ></a>
-	{{ end }} 
+	<a class="u-syndication icon" aria-label="View on Threads" {{ printf "href=%q" .Params.threads.url | safeHTMLAttr }} >{{ partial "icon.html" "threads" }}</a>
+	{{ end }}
 </span> 
 {{ end }}
