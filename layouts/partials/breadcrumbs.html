@@ -14,7 +14,7 @@
     </div>
     {{ else }}
     <div id="hidden-items"> /
-    <li><a href="{{ .RelPermalink }}">{{ .Summary | safeHTML | truncate 30 }}</a></li>
+    <li><a href="{{ .RelPermalink }}">{{ .Summary | plainify | htmlUnescape | truncate 30 }}</a></li>
     </div>
     {{ end }}
 </ul>
