@@ -34,7 +34,8 @@
 {{- if gt (len $lines) 2 -}}
   {{- $shown = slice (index $lines 0) (printf "%s…" (index $lines 1)) -}}
 {{- end -}}
-{{- $title := delimit $shown "\n" -}}
+{{- /* delimit returns template.HTML on Hugo 0.117; images.Text needs a plain string */ -}}
+{{- $title := delimit $shown "\n" | string -}}
 
 {{- /* layout-dependent placement */ -}}
 {{- $trIcon := $logoShadow.Resize "130x" -}}{{- $trX := 998 -}}{{- $trY := 76 -}}
