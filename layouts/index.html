@@ -31,6 +31,7 @@
             {{ if $pinned }}
             {{ range last 3 $pinned }}
               <div class="h-entry card grid-item">
+                {{ partial "card-skeleton.html" . }}
                   <div class="card-body">
                     {{ if .Title }}
                     <a class="card_title card_title_present" href="{{ .Permalink }}">📌 {{ .Title }}</a>
@@ -71,6 +72,7 @@
 						{{ $paginator := .Paginate $posts }}
 						{{ range $paginator.Pages }}
               <div class="h-entry card grid-item">
+                {{ partial "card-skeleton.html" . }}
                   <div class="card-body">
                     {{ if .Title }}
                     <a class="card_title card_title_present" href="{{ .Permalink }}">{{ .Title }}</a>

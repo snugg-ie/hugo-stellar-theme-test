@@ -1238,34 +1238,51 @@ body.force-theme-dark .sprinkle-divider,
 	opacity: 0;
 }
 
-/* Structured placeholder drawn over the hidden content: a title bar, a thumbnail
-   block, then text-line bars — layered backgrounds on one overlay so it adapts to
-   each card's real height with no reflow. */
-.grid.is-loading .card::before {
-	content: "";
+/* Structured placeholder overlay (partials/card-skeleton.html): rounded shapes — a
+   title bar, a thumbnail block, then text-line bars — absolutely positioned over the
+   opacity-hidden content at the card's real height, so reveal has no reflow. */
+.card-skeleton {
+	display: none;
+}
+
+.grid.is-loading .card-skeleton {
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
 	position: absolute;
 	inset: 0;
 	z-index: 1;
+	padding: 1.25rem;
 	border-radius: inherit;
-	background-color: var(--sk-surface);
-	background-repeat: no-repeat;
-	background-image:
-		linear-gradient(var(--sk), var(--sk)),
-		linear-gradient(var(--sk), var(--sk)),
-		linear-gradient(var(--sk), var(--sk)),
-		linear-gradient(var(--sk), var(--sk));
-	background-size: 55% 1.1em, 100% 15rem, 88% 0.65em, 70% 0.65em;
-	background-position:
-		1.25rem 1.4rem,
-		left calc(1.4rem + 2.4em),
-		1.25rem calc(1.4rem + 2.4em + 15rem + 1em),
-		1.25rem calc(1.4rem + 2.4em + 15rem + 2.2em);
+	background: var(--sk-surface);
 }
 
-/* Text-only cards: drop the thumbnail, bars from the top. */
-.grid.is-loading .card:not(:has(img)):not(:has(video))::before {
-	background-size: 60% 1.1em, 90% 0.65em, 75% 0.65em, 0 0;
-	background-position: 1.25rem 1.4rem, 1.25rem 3.1rem, 1.25rem 4.3rem, 0 0;
+.card-skeleton .sk-bar {
+	height: 0.7em;
+	border-radius: 0.45em;
+	background: var(--sk);
+}
+
+.card-skeleton .sk-title {
+	height: 1.05em;
+	width: 55%;
+	margin-bottom: 0.15rem;
+}
+
+.card-skeleton .sk-short {
+	width: 70%;
+}
+
+.card-skeleton .sk-thumb {
+	height: 15rem;
+	border-radius: 0.5em;
+	background: var(--sk);
+	margin: 0.15rem 0 0.45rem;
+}
+
+/* Text-only cards: drop the thumbnail. */
+.grid.is-loading .card:not(:has(img)):not(:has(video)) .sk-thumb {
+	display: none;
 }
 
 .grid.is-loading .card::after {
