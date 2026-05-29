@@ -1,9 +1,10 @@
 {{- /* Generates a 1200x630 OpenGraph card for a post and returns the image resource.
        Precedence: title > summary > image.
-       - title:   big 88px headline
-       - summary: smaller 48px text (titleless/status posts)
-       - image:   the post photo(s) as a rounded thumbnail / collage, no byline
-       Text cards: layout B (sprinkles top-right, avatar byline) or A (swapLogoAvatar). */ -}}
+       - title:           big 88px headline + byline
+       - summary:         smaller 48px text + byline (titleless/status posts)
+       - short summary + image(s): caption on top, photo(s) shrink below
+       - image(s):        rounded photo / collage, no byline
+       Non-image media (e.g. video) in .Params.images is skipped (no .Fill). */ -}}
 {{- $base := resources.Get "og/base.png" -}}
 {{- $fontLight := resources.Get "fonts/SourceSans3-Light.ttf" -}}
 {{- $fontSemi := resources.Get "fonts/SourceSans3-Semibold.ttf" -}}
@@ -18,54 +19,60 @@
 
 {{- $date := .Date.Format "Mon 2 Jan, 2006" -}}
 
-{{- /* headline source: title, else the plain-text summary */ -}}
 {{- $isTitle := ne .Title "" -}}
-{{- $headline := .Title -}}
-{{- if not $isTitle -}}
-  {{- $headline = trim (replaceRE "\\s+" " " (.Summary | plainify | htmlUnescape)) " " -}}
-{{- end -}}
-{{- $hasText := ne (trim $headline " ") "" -}}
+{{- $sum := trim (replaceRE "\\s+" " " (.Summary | plainify | htmlUnescape)) " " -}}
+{{- $hasSum := ne $sum "" -}}
 
-{{- $imgs := .Params.images | default (slice) -}}
+{{- /* keep only real images — a video (etc.) in .Params.images has no .Fill and breaks the build */ -}}
+{{- $imgs := slice -}}
+{{- range (.Params.images | default (slice)) -}}
+  {{- if findRE `(?i)\.(jpe?g|png|gif|webp)(\?|$)` . -}}{{- $imgs = $imgs | append . -}}{{- end -}}
+{{- end -}}
 {{- $n := len $imgs -}}{{- if gt $n 4 }}{{ $n = 4 }}{{ end -}}
 
+{{- $captionMode := and (not $isTitle) (gt $n 0) $hasSum (le (len $sum) 38) -}}
+{{- $imageMode := and (not $isTitle) (gt $n 0) (not $hasSum) -}}
+
 {{- $card := $base -}}
-{{- if and (not $hasText) (gt $n 0) -}}
-  {{- /* ===== IMAGE CARD: rounded photo / collage, no byline ===== */ -}}
+{{- if or $captionMode $imageMode -}}
+  {{- /* ===== IMAGE CARD (optionally captioned), no byline ===== */ -}}
   {{- $mBig := resources.Get "og/mask-big.png" -}}
   {{- $mMed := resources.Get "og/mask-med.png" -}}
   {{- $mSm := resources.Get "og/mask-small.png" -}}
   {{- $card = resources.Get "og/base-plain.png" -}}
-  {{- /* crop focus: "smart" (default) or a named anchor (Top, Bottom, Left, TopRight, …) via front matter og_anchor */ -}}
+  {{- /* crop focus: "smart" (default) or a named anchor via front matter og_anchor */ -}}
   {{- $anchor := "smart" -}}{{- if isset .Params "og_anchor" }}{{ $anchor = .Params.og_anchor }}{{ end -}}
+  {{- /* photo area shrinks (pushed down) when there's a caption on top */ -}}
+  {{- $top := 50 -}}{{- $ih := 530 -}}{{- $rh := 257 -}}{{- $row2 := 323 -}}
+  {{- if $captionMode -}}{{- $top = 142 -}}{{- $ih = 433 -}}{{- $rh = 207 -}}{{- $row2 = 368 -}}{{- end -}}
+  {{- $slots := slice -}}
   {{- if eq $n 1 -}}
-    {{- $t := try (resources.GetRemote (absURL (index $imgs 0))) -}}
-    {{- with $t.Value -}}
-      {{- $ph := (.Fill (printf "1100x530 %s png" $anchor)) | images.Filter (images.Mask $mBig) -}}
-      {{- $card = $card | images.Filter (images.Overlay $ph 50 50) -}}
-    {{- end -}}
+    {{- $slots = slice (dict "x" 50 "y" $top "w" 1100 "h" $ih "m" $mBig) -}}
+  {{- else if eq $n 2 -}}
+    {{- $slots = slice (dict "x" 50 "y" $top "w" 542 "h" $ih "m" $mMed) (dict "x" 608 "y" $top "w" 542 "h" $ih "m" $mMed) -}}
+  {{- else if eq $n 3 -}}
+    {{- $slots = slice (dict "x" 50 "y" $top "w" 542 "h" $rh "m" $mSm) (dict "x" 608 "y" $top "w" 542 "h" $rh "m" $mSm) (dict "x" 50 "y" $row2 "w" 542 "h" $rh "m" $mSm) -}}
   {{- else -}}
-    {{- $slots := slice -}}
-    {{- if eq $n 2 -}}
-      {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 530 "m" $mMed) (dict "x" 608 "y" 50 "w" 542 "h" 530 "m" $mMed) -}}
-    {{- else if eq $n 3 -}}
-      {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
-    {{- else -}}
-      {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
-    {{- end -}}
-    {{- range $i, $s := $slots -}}
-      {{- $t := try (resources.GetRemote (absURL (index $imgs $i))) -}}
-      {{- with $t.Value -}}
+    {{- $slots = slice (dict "x" 50 "y" $top "w" 542 "h" $rh "m" $mSm) (dict "x" 608 "y" $top "w" 542 "h" $rh "m" $mSm) (dict "x" 50 "y" $row2 "w" 542 "h" $rh "m" $mSm) (dict "x" 608 "y" $row2 "w" 542 "h" $rh "m" $mSm) -}}
+  {{- end -}}
+  {{- range $i, $s := $slots -}}
+    {{- $t := try (resources.GetRemote (absURL (index $imgs $i))) -}}
+    {{- with $t.Value -}}
+      {{- if eq .ResourceType "image" -}}
         {{- /* crop keeps the subject ($anchor); PNG so the rounded (masked) corners stay transparent */ -}}
         {{- $ph := (.Fill (printf "%dx%d %s png" $s.w $s.h $anchor)) | images.Filter (images.Mask $s.m) -}}
         {{- $card = $card | images.Filter (images.Overlay $ph $s.x $s.y) -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
+  {{- if $captionMode -}}
+    {{- $card = $card | images.Filter (images.Text $sum (dict "color" "#ffffff" "size" 40 "x" 56 "y" 54 "font" $fontLight)) -}}
+  {{- end -}}
   {{- /* favicon-style sprinkles tucked into the top-right gutter */ -}}
   {{- $card = $card | images.Filter (images.Overlay ($logoPlain.Resize "52x") 1140 6) -}}
 {{- else -}}
   {{- /* ===== TEXT CARD: title (big) or summary (smaller) ===== */ -}}
+  {{- $headline := cond $isTitle .Title $sum -}}
   {{- $size := 88 -}}{{- $max := 23 -}}{{- $maxLines := 2 -}}{{- $ty := 150 -}}{{- $tls := 7 -}}
   {{- if not $isTitle -}}{{- $size = 48 -}}{{- $max = 36 -}}{{- $maxLines = 4 -}}{{- $ty = 162 -}}{{- $tls = 12 -}}{{- end -}}
   {{- $lines := slice -}}

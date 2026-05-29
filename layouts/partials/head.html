@@ -72,7 +72,7 @@
 {{ hugo.Generator }}
 {{ "<!-- [if lte IE 8 ]]> <script src=" | safeHTML }}"{{ .Site.BaseURL }}{{ "js/ie/html5shiv.js\"></script><![endif] -->" | safeHTML }}
 <link rel="stylesheet" href="{{ .Site.BaseURL }}css/main.css" />
-<link rel="stylesheet" href="{{ .Site.BaseURL }}css/snuggle.css" />
+<link rel="stylesheet" href="{{ "css/snuggle.css" | relURL }}" />
 <link rel="stylesheet" href="{{ .Site.BaseURL }}custom.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
