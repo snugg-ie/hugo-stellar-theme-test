@@ -1228,22 +1228,54 @@ body.force-theme-dark .sprinkle-divider,
    opacity (not display:none) so the card keeps its true height — masonry lays out
    correctly and nothing shifts when the content appears. */
 .grid.is-loading .card {
-	background: rgba(170, 90, 115, 0.15);
 	border-color: transparent;
 	cursor: default;
+	--sk: rgba(170, 90, 115, 0.16);
+	--sk-surface: #fff;
+}
+
+.grid.is-loading .card-body {
+	opacity: 0;
+}
+
+/* Structured placeholder drawn over the hidden content: a title bar, a thumbnail
+   block, then text-line bars — layered backgrounds on one overlay so it adapts to
+   each card's real height with no reflow. */
+.grid.is-loading .card::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border-radius: inherit;
+	background-color: var(--sk-surface);
+	background-repeat: no-repeat;
+	background-image:
+		linear-gradient(var(--sk), var(--sk)),
+		linear-gradient(var(--sk), var(--sk)),
+		linear-gradient(var(--sk), var(--sk)),
+		linear-gradient(var(--sk), var(--sk));
+	background-size: 55% 1.1em, 100% 15rem, 88% 0.65em, 70% 0.65em;
+	background-position:
+		1.25rem 1.4rem,
+		left calc(1.4rem + 2.4em),
+		1.25rem calc(1.4rem + 2.4em + 15rem + 1em),
+		1.25rem calc(1.4rem + 2.4em + 15rem + 2.2em);
+}
+
+/* Text-only cards: drop the thumbnail, bars from the top. */
+.grid.is-loading .card:not(:has(img)):not(:has(video))::before {
+	background-size: 60% 1.1em, 90% 0.65em, 75% 0.65em, 0 0;
+	background-position: 1.25rem 1.4rem, 1.25rem 3.1rem, 1.25rem 4.3rem, 0 0;
 }
 
 .grid.is-loading .card::after {
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+	z-index: 2;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
 	transform: translateX(-100%);
 	animation: card-skeleton 1.3s ease-in-out infinite;
-}
-
-.grid.is-loading .card-body {
-	opacity: 0;
 }
 
 .card-body {
@@ -1260,7 +1292,8 @@ body.force-theme-dark .sprinkle-divider,
 
 /* Dark-theme skeleton tones */
 #main.force-theme-dark .grid.is-loading .card {
-	background: rgba(170, 90, 115, 0.3);
+	--sk: rgba(170, 90, 115, 0.32);
+	--sk-surface: #230313;
 }
 
 #main.force-theme-dark .grid.is-loading .card::after {
