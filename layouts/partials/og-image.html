@@ -35,23 +35,31 @@
   {{- $mBig := resources.Get "og/mask-big.png" -}}
   {{- $mMed := resources.Get "og/mask-med.png" -}}
   {{- $mSm := resources.Get "og/mask-small.png" -}}
-  {{- $slots := slice -}}
-  {{- if eq $n 1 -}}
-    {{- $slots = slice (dict "x" 50 "y" 50 "w" 1100 "h" 530 "m" $mBig) -}}
-  {{- else if eq $n 2 -}}
-    {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 530 "m" $mMed) (dict "x" 608 "y" 50 "w" 542 "h" 530 "m" $mMed) -}}
-  {{- else if eq $n 3 -}}
-    {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
-  {{- else -}}
-    {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
-  {{- end -}}
   {{- $card = resources.Get "og/base-plain.png" -}}
-  {{- range $i, $s := $slots -}}
-    {{- $t := try (resources.GetRemote (absURL (index $imgs $i))) -}}
+  {{- /* crop focus: "smart" (default) or a named anchor (Top, Bottom, Left, TopRight, …) via front matter og_anchor */ -}}
+  {{- $anchor := "smart" -}}{{- if isset .Params "og_anchor" }}{{ $anchor = .Params.og_anchor }}{{ end -}}
+  {{- if eq $n 1 -}}
+    {{- $t := try (resources.GetRemote (absURL (index $imgs 0))) -}}
     {{- with $t.Value -}}
-      {{- /* PNG so the rounded (masked) corners stay transparent — JPEG has no alpha */ -}}
-      {{- $ph := (.Fill (printf "%dx%d png" $s.w $s.h)) | images.Filter (images.Mask $s.m) -}}
-      {{- $card = $card | images.Filter (images.Overlay $ph $s.x $s.y) -}}
+      {{- $ph := (.Fill (printf "1100x530 %s png" $anchor)) | images.Filter (images.Mask $mBig) -}}
+      {{- $card = $card | images.Filter (images.Overlay $ph 50 50) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $slots := slice -}}
+    {{- if eq $n 2 -}}
+      {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 530 "m" $mMed) (dict "x" 608 "y" 50 "w" 542 "h" 530 "m" $mMed) -}}
+    {{- else if eq $n 3 -}}
+      {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
+    {{- else -}}
+      {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
+    {{- end -}}
+    {{- range $i, $s := $slots -}}
+      {{- $t := try (resources.GetRemote (absURL (index $imgs $i))) -}}
+      {{- with $t.Value -}}
+        {{- /* crop keeps the subject ($anchor); PNG so the rounded (masked) corners stay transparent */ -}}
+        {{- $ph := (.Fill (printf "%dx%d %s png" $s.w $s.h $anchor)) | images.Filter (images.Mask $s.m) -}}
+        {{- $card = $card | images.Filter (images.Overlay $ph $s.x $s.y) -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
   {{- /* favicon-style sprinkles tucked into the top-right gutter */ -}}
