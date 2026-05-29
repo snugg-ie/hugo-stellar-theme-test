@@ -1,0 +1,25 @@
+{{- /* Generates the centered 1200x630 OpenGraph card for the home page and returns it.
+       Hugo 0.117 (micro.blog) has no images.Text alignx, so x is computed to center each line:
+       fixed lines use measured widths; the config tagline uses a calibrated width estimate. */ -}}
+{{- $base := resources.Get "og/home-base.png" -}}
+{{- $fontLight := resources.Get "fonts/SourceSans3-Light.ttf" -}}
+{{- $fontReg := resources.Get "fonts/SourceSans3-Regular.ttf" -}}
+{{- $avatar := (resources.Get "og/avatar-plain.png").Resize "200x" -}}
+{{- $logo := (resources.Get "og/logo-shadow.png").Resize "86x" -}}
+
+{{- $name := "Evie Snuggle" -}}
+{{- $site := .Site.Title -}}
+{{- $tagline := .Site.Params.og.tagline | default "" -}}
+
+{{- /* center the tagline: ~12.15px/char for Source Sans 3 Regular at 29px (calibrated) */ -}}
+{{- $tagW := mul (len $tagline) 12.15 -}}
+{{- $tagX := int (div (sub 1200.0 $tagW) 2) -}}
+
+{{- $card := $base | images.Filter
+    (images.Text $name (dict "color" "#ffffff" "size" 60 "x" 446 "y" 280 "font" $fontLight))
+    (images.Text $tagline (dict "color" "#e5dce0" "size" 29 "x" $tagX "y" 364 "font" $fontReg))
+    (images.Text $site (dict "color" "#ffffff" "size" 33 "x" 543 "y" 459 "font" $fontLight))
+    (images.Overlay $avatar 500 60)
+    (images.Overlay $logo 557 506)
+-}}
+{{- return $card -}}

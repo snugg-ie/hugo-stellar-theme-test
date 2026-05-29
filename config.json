@@ -29,7 +29,8 @@
   "pluralizeListTitles": false,
   "params": {
     "og": {
-      "swapLogoAvatar": false
+      "swapLogoAvatar": false,
+      "tagline": "Site reliability engineer, herding computers with code"
     },
     "author": {
 	      "name": "Snuggle",
