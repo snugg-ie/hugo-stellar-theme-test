@@ -12,3 +12,32 @@
 <script src="https://tinylytics.app/embed/A-LCyxpo4_DaPxHxHEJw.js" defer></script> 
 {{ "<!-- [if lte IE 8 ]]> <script src=" | safeHTML }}"{{ .Site.BaseURL }}{{ "js/ie/respond.min.js\"></script><![endif] -->" | safeHTML }}
 <script src="{{ .Site.BaseURL }}js/main.js" defer></script>
+<script>
+/* Show post dates as relative-to-now; the exact date cross-fades in on hover (CSS). */
+(function () {
+	if (!('RelativeTimeFormat' in Intl)) return;   // no-JS / old browsers keep the absolute date
+	var rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+	var units = [['year',31536000],['month',2592000],['week',604800],['day',86400],['hour',3600],['minute',60]];
+	function rel(d) {
+		var s = (d - Date.now()) / 1000, a = Math.abs(s);
+		for (var i = 0; i < units.length; i++) { if (a >= units[i][1]) return rtf.format(Math.round(s / units[i][1]), units[i][0]); }
+		return rtf.format(Math.round(s), 'second');
+	}
+	document.querySelectorAll('.dt-published').forEach(function (t) {
+		var raw = t.getAttribute('datetime'); if (!raw) return;
+		var iso = raw.trim().replace(' ', 'T').replace(/\s*([+-]\d{2})(\d{2})$/, '$1:$2');
+		var d = new Date(iso); if (isNaN(+d)) return;
+		var abs = t.textContent.trim(); if (!abs) return;
+		// pull any trailing text right after the <time> (e.g. the " ∞") into each layer,
+		// so it hugs the visible date and moves with the cross-fade instead of being anchored
+		var suffix = '';
+		while (t.nextSibling && t.nextSibling.nodeType === 3) { suffix += t.nextSibling.textContent; t.parentNode.removeChild(t.nextSibling); }
+		suffix = suffix.replace(/\s+/g, ' ').trim();
+		var tail = suffix ? ' ' + suffix : '';
+		t.textContent = '';
+		var r = document.createElement('span'); r.className = 'dt-rel'; r.textContent = rel(d) + tail;
+		var x = document.createElement('span'); x.className = 'dt-abs'; x.textContent = abs + tail;
+		t.appendChild(r); t.appendChild(x);
+	});
+})();
+</script>

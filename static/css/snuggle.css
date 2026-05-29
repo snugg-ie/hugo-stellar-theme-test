@@ -647,6 +647,8 @@ img {
 
 .card-body .post-date {
 	padding-left: 0.8em;
+	/* sit above .card_title::before so the date itself is hoverable (relative-date crossfade) */
+	position: relative;
 }
 
 .card-body {
@@ -844,6 +846,15 @@ video {
   z-index: 2;
   outline: none;
 }
+
+/* Relative post dates that cross-fade to the exact date on hover/focus */
+.dt-published{ display: inline-grid; vertical-align: baseline; }
+.dt-published > span{ grid-area: 1 / 1; transition: opacity .25s ease; }
+.dt-published .dt-abs{ opacity: 0; }
+.dt-published:hover .dt-rel,
+.post-date:focus-visible .dt-rel{ opacity: 0; }
+.dt-published:hover .dt-abs,
+.post-date:focus-visible .dt-abs{ opacity: 1; }
 
 .e-content a {
 	position: relative;
