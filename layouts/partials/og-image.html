@@ -1,6 +1,9 @@
 {{- /* Generates a 1200x630 OpenGraph card for a post and returns the image resource.
-       Layout B (default): sprinkles top-right, avatar in byline.
-       Layout A (swapLogoAvatar): avatar top-right, sprinkles in byline. */ -}}
+       Precedence: title > summary > image.
+       - title:   big 88px headline
+       - summary: smaller 48px text (titleless/status posts)
+       - image:   the post photo(s) as a rounded thumbnail / collage, no byline
+       Text cards: layout B (sprinkles top-right, avatar byline) or A (swapLogoAvatar). */ -}}
 {{- $base := resources.Get "og/base.png" -}}
 {{- $fontLight := resources.Get "fonts/SourceSans3-Light.ttf" -}}
 {{- $fontSemi := resources.Get "fonts/SourceSans3-Semibold.ttf" -}}
@@ -13,54 +16,84 @@
 {{- with .Site.Params.og }}{{ $swap = (.swapLogoAvatar | default false) }}{{ end -}}
 {{- if isset .Params "swap_logo_avatar" }}{{ $swap = .Params.swap_logo_avatar }}{{ end -}}
 
-{{- /* date, e.g. "Fri 8 Jun, 2026" */ -}}
 {{- $date := .Date.Format "Mon 2 Jan, 2006" -}}
 
-{{- /* headline: the post title, or the plain-text summary for titleless/status posts */ -}}
+{{- /* headline source: title, else the plain-text summary */ -}}
+{{- $isTitle := ne .Title "" -}}
 {{- $headline := .Title -}}
-{{- if eq $headline "" -}}
+{{- if not $isTitle -}}
   {{- $headline = trim (replaceRE "\\s+" " " (.Summary | plainify | htmlUnescape)) " " -}}
 {{- end -}}
+{{- $hasText := ne (trim $headline " ") "" -}}
 
-{{- /* greedy word-wrap of the headline to <= $max chars per line, capped at 2 lines */ -}}
-{{- $max := 23 -}}
-{{- $lines := slice -}}
-{{- $cur := "" -}}
-{{- range $w := split $headline " " -}}
-  {{- $try := cond (eq $cur "") $w (printf "%s %s" $cur $w) -}}
-  {{- if le (len $try) $max -}}
-    {{- $cur = $try -}}
+{{- $imgs := .Params.images | default (slice) -}}
+{{- $n := len $imgs -}}{{- if gt $n 4 }}{{ $n = 4 }}{{ end -}}
+
+{{- $card := $base -}}
+{{- if and (not $hasText) (gt $n 0) -}}
+  {{- /* ===== IMAGE CARD: rounded photo / collage, no byline ===== */ -}}
+  {{- $mBig := resources.Get "og/mask-big.png" -}}
+  {{- $mMed := resources.Get "og/mask-med.png" -}}
+  {{- $mSm := resources.Get "og/mask-small.png" -}}
+  {{- $slots := slice -}}
+  {{- if eq $n 1 -}}
+    {{- $slots = slice (dict "x" 50 "y" 50 "w" 1100 "h" 530 "m" $mBig) -}}
+  {{- else if eq $n 2 -}}
+    {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 530 "m" $mMed) (dict "x" 608 "y" 50 "w" 542 "h" 530 "m" $mMed) -}}
+  {{- else if eq $n 3 -}}
+    {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
   {{- else -}}
-    {{- $lines = $lines | append $cur -}}
-    {{- $cur = $w -}}
+    {{- $slots = slice (dict "x" 50 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 50 "w" 542 "h" 257 "m" $mSm) (dict "x" 50 "y" 323 "w" 542 "h" 257 "m" $mSm) (dict "x" 608 "y" 323 "w" 542 "h" 257 "m" $mSm) -}}
   {{- end -}}
+  {{- $card = resources.Get "og/base-plain.png" -}}
+  {{- range $i, $s := $slots -}}
+    {{- $t := try (resources.GetRemote (absURL (index $imgs $i))) -}}
+    {{- with $t.Value -}}
+      {{- /* PNG so the rounded (masked) corners stay transparent — JPEG has no alpha */ -}}
+      {{- $ph := (.Fill (printf "%dx%d png" $s.w $s.h)) | images.Filter (images.Mask $s.m) -}}
+      {{- $card = $card | images.Filter (images.Overlay $ph $s.x $s.y) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- /* favicon-style sprinkles tucked into the top-right gutter */ -}}
+  {{- $card = $card | images.Filter (images.Overlay ($logoPlain.Resize "52x") 1140 6) -}}
+{{- else -}}
+  {{- /* ===== TEXT CARD: title (big) or summary (smaller) ===== */ -}}
+  {{- $size := 88 -}}{{- $max := 23 -}}{{- $maxLines := 2 -}}{{- $ty := 150 -}}{{- $tls := 7 -}}
+  {{- if not $isTitle -}}{{- $size = 48 -}}{{- $max = 36 -}}{{- $maxLines = 4 -}}{{- $ty = 162 -}}{{- $tls = 12 -}}{{- end -}}
+  {{- $lines := slice -}}
+  {{- $cur := "" -}}
+  {{- range $w := split $headline " " -}}
+    {{- $tryline := cond (eq $cur "") $w (printf "%s %s" $cur $w) -}}
+    {{- if le (len $tryline) $max -}}
+      {{- $cur = $tryline -}}
+    {{- else -}}
+      {{- $lines = $lines | append $cur -}}
+      {{- $cur = $w -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if ne $cur "" }}{{ $lines = $lines | append $cur }}{{ end -}}
+  {{- $shown := $lines -}}
+  {{- if gt (len $lines) $maxLines -}}
+    {{- $keep := first $maxLines $lines -}}
+    {{- $shown = (first (sub $maxLines 1) $keep) | append (printf "%s…" (index $keep (sub $maxLines 1))) -}}
+  {{- end -}}
+  {{- $title := delimit $shown "\n" | string -}}
+  {{- if eq $title "" }}{{ $title = " " }}{{ end -}}
+  {{- $trIcon := $logoShadow.Resize "130x" -}}{{- $trX := 998 -}}{{- $trY := 76 -}}
+  {{- $blIcon := $avatar.Resize "76x" -}}{{- $blX := 90 -}}{{- $blY := 464 -}}
+  {{- $nameX := 186 -}}{{- $nmY := 470 -}}{{- $stY := 506 -}}
+  {{- if $swap -}}
+    {{- $trIcon = $avatar.Resize "120x" -}}{{- $trX = 990 -}}{{- $trY = 84 -}}
+    {{- $blIcon = $logoPlain.Resize "100x" -}}{{- $blX = 71 -}}{{- $blY = 458 -}}
+    {{- $nameX = 172 -}}{{- $nmY = 475 -}}{{- $stY = 512 -}}
+  {{- end -}}
+  {{- $card = $base | images.Filter
+      (images.Text $date (dict "color" "#cf8298" "size" 27 "x" 90 "y" 88 "font" $fontSemi))
+      (images.Text $title (dict "color" "#ffffff" "size" $size "x" 90 "y" $ty "linespacing" $tls "font" $fontLight))
+      (images.Text "Evie Snuggle" (dict "color" "#ffffff" "size" 30 "x" $nameX "y" $nmY "font" $fontSemi))
+      (images.Text "snugg.ie" (dict "color" "#c9bdc3" "size" 23 "x" $nameX "y" $stY "font" $fontLight))
+      (images.Overlay $trIcon $trX $trY)
+      (images.Overlay $blIcon $blX $blY)
+  -}}
 {{- end -}}
-{{- if ne $cur "" }}{{ $lines = $lines | append $cur }}{{ end -}}
-{{- $shown := $lines -}}
-{{- if gt (len $lines) 2 -}}
-  {{- $shown = slice (index $lines 0) (printf "%s…" (index $lines 1)) -}}
-{{- end -}}
-{{- /* delimit returns template.HTML on Hugo 0.117; images.Text needs a plain string */ -}}
-{{- $title := delimit $shown "\n" | string -}}
-{{- /* never pass an empty string to images.Text (errors on 0.117) */ -}}
-{{- if eq $title "" }}{{ $title = " " }}{{ end -}}
-
-{{- /* layout-dependent placement */ -}}
-{{- $trIcon := $logoShadow.Resize "130x" -}}{{- $trX := 998 -}}{{- $trY := 76 -}}
-{{- $blIcon := $avatar.Resize "76x" -}}{{- $blX := 90 -}}{{- $blY := 464 -}}
-{{- $nameX := 186 -}}{{- $nmY := 470 -}}{{- $stY := 506 -}}
-{{- if $swap -}}
-  {{- $trIcon = $avatar.Resize "120x" -}}{{- $trX = 990 -}}{{- $trY = 84 -}}
-  {{- $blIcon = $logoPlain.Resize "100x" -}}{{- $blX = 71 -}}{{- $blY = 458 -}}
-  {{- $nameX = 172 -}}{{- $nmY = 475 -}}{{- $stY = 512 -}}
-{{- end -}}
-
-{{- $card := $base | images.Filter
-    (images.Text $date (dict "color" "#cf8298" "size" 27 "x" 90 "y" 88 "font" $fontSemi))
-    (images.Text $title (dict "color" "#ffffff" "size" 88 "x" 90 "y" 150 "linespacing" 7 "font" $fontLight))
-    (images.Text "Evie Snuggle" (dict "color" "#ffffff" "size" 30 "x" $nameX "y" $nmY "font" $fontSemi))
-    (images.Text "snugg.ie" (dict "color" "#c9bdc3" "size" 23 "x" $nameX "y" $stY "font" $fontLight))
-    (images.Overlay $trIcon $trX $trY)
-    (images.Overlay $blIcon $blX $blY)
--}}
 {{- return $card -}}
