@@ -1,0 +1,57 @@
+{{- /* Generates a 1200x630 OpenGraph card for a post and returns the image resource.
+       Layout B (default): sprinkles top-right, avatar in byline.
+       Layout A (swapLogoAvatar): avatar top-right, sprinkles in byline. */ -}}
+{{- $base := resources.Get "og/base.png" -}}
+{{- $fontLight := resources.Get "fonts/SourceSans3-Light.ttf" -}}
+{{- $fontSemi := resources.Get "fonts/SourceSans3-Semibold.ttf" -}}
+{{- $avatar := resources.Get "og/avatar.png" -}}
+{{- $logoShadow := resources.Get "og/logo-shadow.png" -}}
+{{- $logoPlain := resources.Get "og/logo-plain.png" -}}
+
+{{- /* swap toggle: site param, overridable per-post */ -}}
+{{- $swap := false -}}
+{{- with .Site.Params.og }}{{ $swap = (.swapLogoAvatar | default false) }}{{ end -}}
+{{- if isset .Params "swap_logo_avatar" }}{{ $swap = .Params.swap_logo_avatar }}{{ end -}}
+
+{{- /* date, e.g. "Fri 8 Jun, 2026" */ -}}
+{{- $date := .Date.Format "Mon 2 Jan, 2006" -}}
+
+{{- /* greedy word-wrap of the title to <= $max chars per line, capped at 2 lines */ -}}
+{{- $max := 23 -}}
+{{- $lines := slice -}}
+{{- $cur := "" -}}
+{{- range $w := split (.Title | default "") " " -}}
+  {{- $try := cond (eq $cur "") $w (printf "%s %s" $cur $w) -}}
+  {{- if le (len $try) $max -}}
+    {{- $cur = $try -}}
+  {{- else -}}
+    {{- $lines = $lines | append $cur -}}
+    {{- $cur = $w -}}
+  {{- end -}}
+{{- end -}}
+{{- if ne $cur "" }}{{ $lines = $lines | append $cur }}{{ end -}}
+{{- $shown := $lines -}}
+{{- if gt (len $lines) 2 -}}
+  {{- $shown = slice (index $lines 0) (printf "%s…" (index $lines 1)) -}}
+{{- end -}}
+{{- $title := delimit $shown "\n" -}}
+
+{{- /* layout-dependent placement */ -}}
+{{- $trIcon := $logoShadow.Resize "130x" -}}{{- $trX := 998 -}}{{- $trY := 76 -}}
+{{- $blIcon := $avatar.Resize "76x" -}}{{- $blX := 90 -}}{{- $blY := 464 -}}
+{{- $nameX := 186 -}}{{- $nmY := 470 -}}{{- $stY := 506 -}}
+{{- if $swap -}}
+  {{- $trIcon = $avatar.Resize "120x" -}}{{- $trX = 990 -}}{{- $trY = 84 -}}
+  {{- $blIcon = $logoPlain.Resize "100x" -}}{{- $blX = 71 -}}{{- $blY = 458 -}}
+  {{- $nameX = 172 -}}{{- $nmY = 475 -}}{{- $stY = 512 -}}
+{{- end -}}
+
+{{- $card := $base | images.Filter
+    (images.Text $date (dict "color" "#cf8298" "size" 27 "x" 90 "y" 88 "font" $fontSemi))
+    (images.Text $title (dict "color" "#ffffff" "size" 88 "x" 90 "y" 150 "linespacing" 7 "font" $fontLight))
+    (images.Text "Evie Snuggle" (dict "color" "#ffffff" "size" 30 "x" $nameX "y" $nmY "font" $fontSemi))
+    (images.Text "snugg.ie" (dict "color" "#c9bdc3" "size" 23 "x" $nameX "y" $stY "font" $fontLight))
+    (images.Overlay $trIcon $trX $trY)
+    (images.Overlay $blIcon $blX $blY)
+-}}
+{{- return $card -}}
