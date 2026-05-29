@@ -1112,6 +1112,16 @@ video {
 		}
 
 
+/* full-size gallery: stretch the photo to the full-bleed width so a narrow image
+   fills the row instead of leaving a right-side gap (the width:auto rules above
+   only fill when the image is already wide enough). Matches each breakpoint's margins. */
+.full-size-gallery img { width: calc(100% + 10em); }
+@media screen and (max-width: 1280px) { .full-size-gallery img { width: calc(100% + 8em); } }
+@media screen and (max-width: 980px)  { .full-size-gallery img { width: calc(100% + 6em); } }
+@media screen and (max-width: 736px)  { .full-size-gallery img { width: calc(100% + 4em); } }
+@media screen and (max-width: 480px)  { .full-size-gallery img { width: calc(100% + 3em); } }
+@media screen and (max-width: 360px)  { .full-size-gallery img { width: calc(100% + 2em); } }
+
 /* ---------------------------------------------------------------------------
    Sprinkle divider — opt-in decorative rule with the sprinkle logo centred.
    Apply to an <hr> (or block element):
