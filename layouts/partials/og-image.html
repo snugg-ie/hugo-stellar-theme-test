@@ -16,11 +16,17 @@
 {{- /* date, e.g. "Fri 8 Jun, 2026" */ -}}
 {{- $date := .Date.Format "Mon 2 Jan, 2006" -}}
 
-{{- /* greedy word-wrap of the title to <= $max chars per line, capped at 2 lines */ -}}
+{{- /* headline: the post title, or the plain-text summary for titleless/status posts */ -}}
+{{- $headline := .Title -}}
+{{- if eq $headline "" -}}
+  {{- $headline = trim (replaceRE "\\s+" " " (.Summary | plainify | htmlUnescape)) " " -}}
+{{- end -}}
+
+{{- /* greedy word-wrap of the headline to <= $max chars per line, capped at 2 lines */ -}}
 {{- $max := 23 -}}
 {{- $lines := slice -}}
 {{- $cur := "" -}}
-{{- range $w := split (.Title | default "") " " -}}
+{{- range $w := split $headline " " -}}
   {{- $try := cond (eq $cur "") $w (printf "%s %s" $cur $w) -}}
   {{- if le (len $try) $max -}}
     {{- $cur = $try -}}
@@ -36,6 +42,8 @@
 {{- end -}}
 {{- /* delimit returns template.HTML on Hugo 0.117; images.Text needs a plain string */ -}}
 {{- $title := delimit $shown "\n" | string -}}
+{{- /* never pass an empty string to images.Text (errors on 0.117) */ -}}
+{{- if eq $title "" }}{{ $title = " " }}{{ end -}}
 
 {{- /* layout-dependent placement */ -}}
 {{- $trIcon := $logoShadow.Resize "130x" -}}{{- $trX := 998 -}}{{- $trY := 76 -}}
