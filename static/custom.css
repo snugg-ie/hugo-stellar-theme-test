@@ -126,11 +126,12 @@ a.uno:hover{ filter:brightness(1.35) hue-rotate(-10deg); }
 }
 #main .button:hover{ filter:brightness(1.35) hue-rotate(10deg); }
 
-/* squiggle divider */
+/* squiggle divider — tileable wavy line */
 #main hr{
-  border:0 !important; height:14px !important; background:none !important;
-  background-image:radial-gradient(circle at 7px 4px, var(--sn-hot) 4px, transparent 4.5px) !important;
-  background-size:18px 14px !important; opacity:.85; margin:2.4em 0 !important;
+  border:0 !important; height:16px !important;
+  background:url('/images/squiggle.svg') repeat-x left center !important;
+  background-size:auto 16px !important;
+  opacity:.9; margin:2.4em 0 !important;
 }
 
 /* =====================================================================
