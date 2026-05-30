@@ -1,0 +1,173 @@
+/* =====================================================================
+   snugg.ie — playful polish (melody-inspired, in Snuggle's wine→pink palette)
+   Loaded after main.css + snuggle.css (see head.html). Works in both themes.
+   ===================================================================== */
+
+:root{
+  --sn-wine:#640032; --sn-berry:#800040; --sn-magenta:#C80064;
+  --sn-pink:#FF0080;  --sn-rose:#AA5A73;
+  --sn-teal:#0f9e8f;  --sn-gold:#e0a000;
+  --sn-hot:#FF0080;
+}
+
+/* ---- intro heading: light, playful Quicksand ---- */
+#intro .content header.major h2,
+#intro .content header.major h2.greeting{
+  font-family:'Quicksand', system-ui, sans-serif;
+  font-weight:300;
+  font-size:clamp(2.1rem, 5vw, 3.1rem);
+  line-height:1.14;
+  letter-spacing:.005em;
+}
+#intro .content .p-summary{ font-size:1.18rem; }
+
+/* ---- the name: wine→pink gradient text + soft twinkling sparkles ---- */
+.sparkle-name{
+  position:relative; z-index:0; display:inline-block; font-weight:600;
+  background:linear-gradient(92deg, var(--sn-gold), var(--sn-pink) 50%, var(--sn-magenta));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.sparkle-name::before,
+.sparkle-name::after{
+  content:""; position:absolute; left:-16%; top:-42%; width:132%; height:184%;
+  background-repeat:no-repeat; background-position:center; background-size:100% 100%;
+  z-index:-1; pointer-events:none;
+}
+.sparkle-name::before{ background-image:url('/images/name-sparkles-a.svg'); animation:sn-twinkle 3.2s ease-in-out infinite; }
+.sparkle-name::after { background-image:url('/images/name-sparkles-b.svg'); animation:sn-twinkle 3.2s ease-in-out infinite 1.6s; }
+@keyframes sn-twinkle{ 0%,100%{opacity:.45; transform:scale(.94)} 50%{opacity:1; transform:scale(1.04)} }
+@media (prefers-reduced-motion: reduce){
+  .sparkle-name::before,.sparkle-name::after{ animation:none; opacity:.9; }
+}
+
+/* =====================================================================
+   Cards — bold solid accent fill (accent chosen per-post; see templates)
+   ===================================================================== */
+#main .grid .card.grid-item,
+#main.force-theme-dark .grid .card.grid-item{
+  border:0 !important;
+  border-radius:20px !important;
+  background:var(--c, var(--sn-soft-red)) !important;
+  box-shadow:none !important;
+  transition:transform .18s ease;
+  overflow:hidden;
+}
+#main .grid .card.grid-item:hover{
+  transform:translateY(-6px) rotate(-1deg);
+}
+/* soft card palette (anchored on the soft watermelon red #E85A78) */
+:root{
+  --sn-soft-red:#E85A78; --sn-soft-coral:#EE8A6A; --sn-soft-amber:#E8B85C;
+  --sn-soft-sage:#86C49A; --sn-soft-teal:#5FBAC4; --sn-soft-blue:#7AA6DD;
+  --sn-soft-lilac:#B08AD4; --sn-soft-rose:#E89BB5;
+  --sn-card-ink:#3a0a22; /* deep wine text for legibility on soft tones */
+}
+.accent-red   { --c:var(--sn-soft-red); }
+.accent-coral { --c:var(--sn-soft-coral); }
+.accent-amber { --c:var(--sn-soft-amber); }
+.accent-sage  { --c:var(--sn-soft-sage); }
+.accent-teal  { --c:var(--sn-soft-teal); }
+.accent-blue  { --c:var(--sn-soft-blue); }
+.accent-lilac { --c:var(--sn-soft-lilac); }
+.accent-rose  { --c:var(--sn-soft-rose); }
+
+/* card contents legible on the soft accent (deep-wine ink, no white) */
+#main .grid .card .card-body,
+#main .grid .card .card-body p,
+#main .grid .card .card_title,
+#main.force-theme-dark .grid .card .card-body,
+#main.force-theme-dark .grid .card .card_title{ color:var(--sn-card-ink) !important; }
+#main .grid .card .card_title{
+  font-family:'Quicksand', system-ui, sans-serif !important;
+  font-weight:600 !important; font-size:1.3rem;
+  text-shadow:none;
+}
+#main .grid .card .post-date{ color:rgba(58,10,34,.7) !important; }
+#main .grid .card a.read-more{ color:var(--sn-card-ink) !important; font-weight:700; }
+
+/* gold "COMING SOON!" ribbon (cards with .is-coming-soon) */
+#main .grid .card.is-coming-soon{ position:relative; }
+#main .grid .card.is-coming-soon::after{
+  content:"COMING SOON!";
+  position:absolute; top:18px; right:-44px; transform:rotate(45deg);
+  background:var(--sn-gold); color:#3a0020;
+  font-family:'Quicksand',sans-serif; font-weight:600; font-size:.78rem;
+  letter-spacing:.04em; padding:5px 50px; box-shadow:0 2px 8px rgba(0,0,0,.4); z-index:3;
+}
+
+/* =====================================================================
+   Links & buttons — melody style, in hot pink
+   ===================================================================== */
+/* inline content links become tinted highlight links */
+#main .content .p-summary a,
+#main .e-content a,
+#main .card-body .e-content a,
+a.uno{
+  display:inline-block; text-decoration:none !important;
+  padding:0 .5ch; border-radius:5px;
+  background-color:rgba(255,0,128,.20) !important;
+  color:var(--sn-hot) !important;
+  transition:filter .15s ease;
+}
+#main .content .p-summary a:hover,
+#main .e-content a:hover,
+a.uno:hover{ filter:brightness(1.35) hue-rotate(-10deg); }
+/* links inside soft accent cards: deep-wine ink on a subtle dark tint */
+#main .grid .card .e-content a{
+  background-color:rgba(58,10,34,.14) !important; color:var(--sn-card-ink) !important;
+}
+
+/* buttons: 1px accent border + tint, rounded-rect */
+#main .button,
+#main.force-theme-dark .button{
+  display:inline-flex !important;
+  align-items:center; justify-content:center;
+  line-height:1.2 !important; height:auto !important;
+  font-family:'Quicksand', system-ui, sans-serif !important;
+  border-radius:8px !important;
+  border:1.5px solid var(--sn-hot) !important;
+  background-color:rgba(255,0,128,.16) !important;
+  color:var(--sn-hot) !important;
+  padding:.4rem .9rem !important;
+  text-decoration:none; box-shadow:none !important;
+  transition:filter .15s ease;
+}
+#main .button:hover{ filter:brightness(1.35) hue-rotate(10deg); }
+
+/* squiggle divider — tileable wavy line (for `---` rules in post/page content) */
+#main hr{
+  border:0 !important; height:16px !important;
+  background:url('/images/squiggle.svg') repeat-x left center !important;
+  background-size:auto 16px !important;
+  opacity:.9; margin:2.4em 0 !important;
+}
+
+/* replace the straight separator between stacked sections (e.g. intro → cards)
+   with the squiggle, in both themes */
+#main > .main,
+#main.force-theme-dark > .main{
+  border-top:0 !important;
+  background-image:url('/images/squiggle.svg') !important;
+  background-repeat:repeat-x !important;
+  background-position:top center !important;
+  background-size:auto 16px !important;
+  padding-top:2.6em;
+}
+/* the first section (intro) has no divider above it */
+#main > .main:first-child{ background-image:none !important; padding-top:0; }
+
+/* =====================================================================
+   Light mode: tint the pill links/buttons a touch deeper for contrast
+   (cards already use saturated accents with white text — fine in both)
+   ===================================================================== */
+body:not(.force-theme-dark) #main .content .p-summary a,
+body:not(.force-theme-dark) #main .e-content a,
+body:not(.force-theme-dark) a.uno{
+  background-color:rgba(200,0,100,.14) !important;
+  color:var(--sn-magenta) !important;
+}
+body:not(.force-theme-dark) #main .button{
+  border-color:var(--sn-magenta) !important;
+  background-color:rgba(200,0,100,.12) !important;
+  color:var(--sn-magenta) !important;
+}

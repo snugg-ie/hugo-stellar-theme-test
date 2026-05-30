@@ -2,7 +2,7 @@
   <div class="spotlight">
     <div class="content">
       <header class="major">
-        <h2 class="p-name">Hey there! Welcome to my blog.</h2>
+        <h2 class="greeting">Hey there! It&rsquo;s <span class="sparkle-name">{{ .Site.Params.author.given_name | default "Evie" }}</span> 🐄</h2>
       </header>
       <p class="p-summary p-note">{{ .Site.Params.intro.description | markdownify }}</p>
       <ul class="actions">

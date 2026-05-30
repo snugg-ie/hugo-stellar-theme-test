@@ -27,10 +27,11 @@
 					</header>-->
 					<noscript><style>.grid.is-loading .grid-item{opacity:1}</style></noscript>
 						<div class="grid is-loading" data-masonry='{ "itemSelector": ".grid-item", "isFitWidth": true, "gutter": 10 }'>
+            {{ $accents := slice "red" "amber" "teal" "lilac" "coral" "sage" "blue" }}
             {{ $pinned := .Site.Taxonomies.categories.pinned }}
             {{ if $pinned }}
-            {{ range last 3 $pinned }}
-              <div class="h-entry card grid-item">
+            {{ range $i, $e := last 3 $pinned }}
+              <div class="h-entry card grid-item accent-{{ .Params.accent | default (index $accents (mod $i (len $accents))) }}{{ if .Params.coming_soon }} is-coming-soon{{ end }}">
                 {{ partial "card-skeleton.html" . }}
                   <div class="card-body">
                     {{ if .Title }}
@@ -70,8 +71,8 @@
 						{{ $posts := where .Site.Pages "Type" "post" }}
 						{{ $poststoshow := where $posts "Params.categories" "intersect" (slice "blogs" "posts") }}
 						{{ $paginator := .Paginate $posts }}
-						{{ range $paginator.Pages }}
-              <div class="h-entry card grid-item">
+						{{ range $i, $e := $paginator.Pages }}
+              <div class="h-entry card grid-item accent-{{ .Params.accent | default (index $accents (mod $i (len $accents))) }}{{ if .Params.coming_soon }} is-coming-soon{{ end }}">
                 {{ partial "card-skeleton.html" . }}
                   <div class="card-body">
                     {{ if .Title }}
