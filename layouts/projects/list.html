@@ -13,10 +13,11 @@
 						<h2>My Posts</h2>
 					</header>-->
 					<div class="grid" data-masonry='{ "itemSelector": ".grid-item", "isFitWidth": true, "gutter": 10 }'>
+            {{ $accents := slice "wine" "magenta" "teal" "pink" "rose" "gold" "berry" }}
             {{ $pinned := .Site.Taxonomies.categories.pinned }}
             {{ if $pinned }}
-            {{ range last 3 $pinned }}
-              <div class="h-entry card grid-item">
+            {{ range $i, $e := last 3 $pinned }}
+              <div class="h-entry card grid-item accent-{{ .Params.accent | default (index $accents (mod $i (len $accents))) }}{{ if .Params.coming_soon }} is-coming-soon{{ end }}">
                   <div class="card-body">
                     {{ if .Title }}
                     <a class="card_title card_title_present" href="{{ .Permalink }}">📌 {{ .Title }}</a>
@@ -54,8 +55,8 @@
             {{ end }}
 						{{ $posts := where .Site.Pages "Type" "post" }}
             {{ $poststoshow := where $posts "Params.categories" "intersect" (slice "projects" ) }}
-						{{ range $poststoshow }}
-              <div class="h-entry card grid-item">
+						{{ range $i, $e := $poststoshow }}
+              <div class="h-entry card grid-item accent-{{ .Params.accent | default (index $accents (mod $i (len $accents))) }}{{ if .Params.coming_soon }} is-coming-soon{{ end }}">
                   <div class="card-body">
                     {{ if .Title }}
                     <a class="card_title card_title_present" href="{{ .Permalink }}">{{ .Title }}</a>
