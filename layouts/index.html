@@ -4,7 +4,7 @@
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 	{{ "-->" | safeHTML }}
-<html>
+<html lang="en-GB">
 	<head>
 		{{ partial "head.html" . }}
 	</head>
@@ -17,7 +17,7 @@
 			<!-- Nav -->
 			{{ partial "navigation.html" . }}
 			<!-- Main -->
-			<div id="main">
+			<div id="main" role="main">
 				<!-- Introduction -->
 				{{ partial "intro.html" . }}
 				<!-- section features -->
@@ -147,7 +147,7 @@
 		</div>
 		<!-- Scripts -->
 		{{ partial "scripts.html" . }}
-		<script src="{{ .Site.BaseURL }}js/masonry.pkgd.min.js"></script>
+		<script src="{{ "js/masonry.pkgd.min.js" | relURL }}"></script>
 		<script>
 		(function () {
 			var grid = document.querySelector('.grid[data-masonry]');

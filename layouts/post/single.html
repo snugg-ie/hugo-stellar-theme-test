@@ -4,7 +4,7 @@
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
-<html>
+<html lang="en-GB">
 	<head>
     {{ partial "head.html" . }}
 	</head>
@@ -19,8 +19,8 @@
 
         {{ partial "navigation.html" . }}
 				<!-- Main -->
-					<div id="main">
-            
+					<div id="main" role="main">
+
             <section id="content" class="main">
             <article class="h-entry">
 						<!-- Content -->
@@ -31,7 +31,7 @@
 
                   <article class="post-content e-content">
                     {{ if .Title }}
-                    <h1 class="p-name">{{ .Title }}</h2>
+                    <h1 class="p-name">{{ .Title }}</h1>
                     {{ end }}
                     {{ .Content | replaceRE "<img" "<img class=\"u-photo\"" | safeHTML }}
                   </article>

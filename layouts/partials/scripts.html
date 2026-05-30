@@ -1,17 +1,17 @@
 {{ "<!-- Scripts -->" | safeHTML }}
-<script src="{{ .Site.BaseURL }}js/jquery.min.js"></script>
-<script src="{{ .Site.BaseURL }}js/jquery.scrollex.min.js" defer></script>
-<script src="{{ .Site.BaseURL }}js/jquery.scrolly.min.js" defer></script>
-<script src="{{ .Site.BaseURL }}js/skel.min.js" defer></script>
-<script src="{{ .Site.BaseURL }}js/sprinkles.js"></script>
-<script src="{{ .Site.BaseURL }}js/floating-sprinkles.js" defer></script>
-<script src="{{ .Site.BaseURL }}js/collections.js"></script>
-<script src="{{ .Site.BaseURL }}js/theme.js" defer></script>
-<script src="{{ .Site.BaseURL }}js/webmention.js" async></script>
-<script src="{{ .Site.BaseURL }}js/util.js" defer></script>
+<script src="{{ "js/jquery.min.js" | relURL }}"></script>
+<script src="{{ "js/jquery.scrollex.min.js" | relURL }}" defer></script>
+<script src="{{ "js/jquery.scrolly.min.js" | relURL }}" defer></script>
+<script src="{{ "js/skel.min.js" | relURL }}" defer></script>
+<script src="{{ "js/sprinkles.js" | relURL }}"></script>
+<script src="{{ "js/floating-sprinkles.js" | relURL }}" defer></script>
+<script src="{{ "js/collections.js" | relURL }}"></script>
+<script src="{{ "js/theme.js" | relURL }}" defer></script>
+<script src="{{ "js/webmention.js" | relURL }}" async></script>
+<script src="{{ "js/util.js" | relURL }}" defer></script>
 <script src="https://tinylytics.app/embed/A-LCyxpo4_DaPxHxHEJw.js" defer></script> 
 {{ "<!-- [if lte IE 8 ]]> <script src=" | safeHTML }}"{{ .Site.BaseURL }}{{ "js/ie/respond.min.js\"></script><![endif] -->" | safeHTML }}
-<script src="{{ .Site.BaseURL }}js/main.js" defer></script>
+<script src="{{ "js/main.js" | relURL }}" defer></script>
 <script>
 /* Show post dates as relative-to-now; the exact date cross-fades in on hover (CSS). */
 (function () {
