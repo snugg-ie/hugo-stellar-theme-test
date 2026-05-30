@@ -20,8 +20,6 @@
   letter-spacing:.005em;
 }
 #intro .content .p-summary{ font-size:1.18rem; }
-/* drop the theme's short heading underline — the squiggle is our divider now */
-#intro .content header.major h2::after{ display:none !important; }
 
 /* ---- the name: wine→pink gradient text + soft twinkling sparkles ---- */
 .sparkle-name{
@@ -136,13 +134,27 @@ a.uno:hover{ filter:brightness(1.35) hue-rotate(-10deg); }
 }
 #main .button:hover{ filter:brightness(1.35) hue-rotate(10deg); }
 
-/* squiggle divider — tileable wavy line */
+/* squiggle divider — tileable wavy line (for `---` rules in post/page content) */
 #main hr{
   border:0 !important; height:16px !important;
   background:url('/images/squiggle.svg') repeat-x left center !important;
   background-size:auto 16px !important;
   opacity:.9; margin:2.4em 0 !important;
 }
+
+/* replace the straight separator between stacked sections (e.g. intro → cards)
+   with the squiggle, in both themes */
+#main > .main,
+#main.force-theme-dark > .main{
+  border-top:0 !important;
+  background-image:url('/images/squiggle.svg') !important;
+  background-repeat:repeat-x !important;
+  background-position:top center !important;
+  background-size:auto 16px !important;
+  padding-top:2.6em;
+}
+/* the first section (intro) has no divider above it */
+#main > .main:first-child{ background-image:none !important; padding-top:0; }
 
 /* =====================================================================
    Light mode: tint the pill links/buttons a touch deeper for contrast
